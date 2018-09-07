@@ -1,2 +1,2 @@
-# contextual_modeling_tf
-Contextual Modeling
+# Contextual Modeling
+Contextual Modeling model in Tensorflow
