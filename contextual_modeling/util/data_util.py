@@ -2,6 +2,7 @@ import codecs
 import collections
 import os.path
 import json
+import uuid
 
 import numpy as np
 import tensorflow as tf
@@ -444,6 +445,7 @@ def load_tsv_data(input_file):
                 context = items[0]
                 if context not in context_lookup:
                     context_lookup[context] = {
+                        "id": str(uuid.uuid4()),
                         "context": context,
                         "response": []
                     }

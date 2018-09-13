@@ -65,7 +65,7 @@ class DAM(BaseModel):
             
             if self.mode == "infer":
                 """get infer answer"""
-                self.infer_predict = self.predict
+                self.infer_predict = tf.nn.sigmoid(self.predict)
                 self.infer_predict_mask = self.predict_mask
                 
                 """create infer summary"""
@@ -535,6 +535,22 @@ class DAM(BaseModel):
         return TrainResult(loss=loss, learning_rate=learning_rate,
             global_step=global_step, batch_size=batch_size, summary=summary)
     
+    def infer(self,
+              sess,
+              word_embedding):
+        """infer model"""
+        word_embed_pretrained = self.hyperparams.model_representation_word_embed_pretrained
+        
+        if word_embed_pretrained == True:
+            (infer_predict, batch_size,
+                summary) = sess.run([self.infer_predict, self.batch_size, self.infer_summary],
+                    feed_dict={self.word_embedding_placeholder: word_embedding})
+        else:
+            (infer_predict, batch_size,
+                summary) = sess.run([self.infer_predict, self.batch_size, self.infer_summary])
+        
+        return InferResult(predict=infer_predict, batch_size=batch_size, summary=summary)
+    
     def save(self,
              sess,
              global_step,
@@ -565,6 +581,42 @@ class DAM(BaseModel):
             self.ckpt_epoch_saver.restore(sess, ckpt_epoch_file)
         else:
             raise ValueError("unsupported restore mode {0}".format(restore_mode))
+
+    def get_latest_ckpt(self,
+                        ckpt_type):
+        """get the latest checkpoint for dam model"""
+        if ckpt_type == "debug":
+            ckpt_file = tf.train.latest_checkpoint(self.ckpt_debug_dir)
+            if ckpt_file is None:
+                raise FileNotFoundError("latest checkpoint file doesn't exist")
+            
+            return ckpt_file
+        elif ckpt_type == "epoch":
+            ckpt_file = tf.train.latest_checkpoint(self.ckpt_epoch_dir)
+            if ckpt_file is None:
+                raise FileNotFoundError("latest checkpoint file doesn't exist")
+            
+            return ckpt_file
+        else:
+            raise ValueError("unsupported checkpoint type {0}".format(ckpt_type))
+    
+    def get_ckpt_list(self,
+                      ckpt_type):
+        """get checkpoint list for dam model"""
+        if ckpt_type == "debug":
+            ckpt_state = tf.train.get_checkpoint_state(self.ckpt_debug_dir)
+            if ckpt_state is None:
+                raise FileNotFoundError("checkpoint files doesn't exist")
+            
+            return ckpt_state.all_model_checkpoint_paths
+        elif ckpt_type == "epoch":
+            ckpt_state = tf.train.get_checkpoint_state(self.ckpt_epoch_dir)
+            if ckpt_state is None:
+                raise FileNotFoundError("checkpoint files doesn't exist")
+            
+            return ckpt_state.all_model_checkpoint_paths
+        else:
+            raise ValueError("unsupported checkpoint type {0}".format(ckpt_type))
 
 class AttentiveModule(object):
     """attentive-module layer"""

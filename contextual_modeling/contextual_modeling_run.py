@@ -20,6 +20,75 @@ def add_arguments(parser):
     parser.add_argument("--mode", help="mode to run", required=True)
     parser.add_argument("--config", help="path to json config", required=True)
 
+def extrinsic_eval(logger,
+                   summary_writer,
+                   sess,
+                   model,
+                   input_data,
+                   context_data,
+                   response_data,
+                   label_data,
+                   word_embedding,
+                   batch_size,
+                   metric_list,
+                   detail_type,
+                   global_step,
+                   epoch,
+                   ckpt_file,
+                   eval_mode):
+    data_size = len(input_data)
+    load_model(sess, model, ckpt_file, eval_mode)
+    sess.run(model.data_pipeline.initializer,
+        feed_dict={model.data_pipeline.input_context_placeholder: context_data,
+            model.data_pipeline.input_response_placeholder: response_data,
+            model.data_pipeline.input_label_placeholder: label_data,
+            model.data_pipeline.data_size_placeholder: data_size,
+            model.data_pipeline.batch_size_placeholder: batch_size})
+    
+    sample_predict = []
+    while True:
+        try:
+            infer_result = model.model.infer(sess, word_embedding)
+            sample_predict.extend(infer_result.predict)
+        except  tf.errors.OutOfRangeError:
+            break
+    
+    sample_output = []
+    for i in range(data_size):
+        sample_output.append({
+            "id": input_data[i]["id"],
+            "context": input_data[i]["context"],
+            "response": [{
+                "text": response["text"],
+                "score": sample_predict[i][j],
+                "label": response["label"]
+            } for j, response in enumerate(input_data[i]["response"])]
+        })
+    
+    if detail_type == "simplified":
+        sample_output = {
+            sample["id"]: {
+                "score", sample["response"]["score"],
+                "label", sample["response"]["label"]
+            } for sample in sample_output }
+    
+    eval_result_list = []
+    for metric in metric_list:
+        score = evaluate_from_data(predict_text, label_text, metric)
+        summary_writer.add_value_summary(metric, score, global_step)
+        eval_result = ExtrinsicEvalLog(metric=metric,
+            score=score, sample_output=None, sample_size=len(sample_output))
+        eval_result_list.append(eval_result)
+    
+    eval_result_detail = ExtrinsicEvalLog(metric="detail",
+        score=0.0, sample_output=sample_output, sample_size=len(sample_output))
+    basic_info = BasicInfoEvalLog(epoch=epoch, global_step=global_step)
+    
+    logger.update_extrinsic_eval(eval_result_list, basic_info)
+    logger.update_extrinsic_eval_detail(eval_result_detail, basic_info)
+    logger.check_extrinsic_eval()
+    logger.check_extrinsic_eval_detail()
+
 def train(logger,
           hyperparams,
           enable_eval=True,
@@ -77,8 +146,8 @@ def train(logger,
                 if step_in_epoch % hyperparams.train_step_per_eval == 0 and enable_eval == True:
                     ckpt_file = infer_model.model.get_latest_ckpt("debug")
                     extrinsic_eval(eval_logger, infer_summary_writer, infer_sess,
-                        infer_model, infer_model.input_data, infer_model.input_question,
-                        infer_model.input_context, infer_model.input_answer, infer_model.word_embedding,
+                        infer_model, infer_model.input_data, infer_model.input_context,
+                        infer_model.input_response, infer_model.input_label, infer_model.word_embedding,
                         hyperparams.train_eval_batch_size, hyperparams.train_eval_metric,
                         hyperparams.train_eval_detail_type, global_step, epoch, ckpt_file, "debug")
             except tf.errors.OutOfRangeError:
@@ -88,8 +157,8 @@ def train(logger,
                 if enable_eval == True:
                     ckpt_file = infer_model.model.get_latest_ckpt("epoch")
                     extrinsic_eval(eval_logger, infer_summary_writer, infer_sess,
-                        infer_model, infer_model.input_data, infer_model.input_question,
-                        infer_model.input_context, infer_model.input_answer, infer_model.word_embedding,
+                        infer_model, infer_model.input_data, infer_model.input_context,
+                        infer_model.input_response, infer_model.input_label, infer_model.word_embedding,
                         hyperparams.train_eval_batch_size, hyperparams.train_eval_metric,
                         hyperparams.train_eval_detail_type, global_step, epoch, ckpt_file, "epoch")
                 break
@@ -144,6 +213,14 @@ def main(args):
     
     if (args.mode == 'train'):
         train(logger, hyperparams, enable_eval=False, enable_debug=False)
+    elif (args.mode == 'train_eval'):
+        train(logger, hyperparams, enable_eval=True, enable_debug=False)
+    elif (args.mode == 'train_debug'):
+        train(logger, hyperparams, enable_eval=False, enable_debug=True)
+    elif (args.mode == 'eval'):
+        evaluate(logger, hyperparams, enable_debug=False)
+    elif (args.mode == 'eval_debug'):
+        evaluate(logger, hyperparams, enable_debug=True
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
