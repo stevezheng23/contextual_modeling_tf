@@ -196,8 +196,8 @@ def evaluate(logger,
     ckpt_file_list = infer_model.model.get_ckpt_list(eval_mode)
     for i, ckpt_file in enumerate(ckpt_file_list):
         extrinsic_eval(eval_logger, infer_summary_writer, infer_sess,
-            infer_model, infer_model.input_data, infer_model.input_question,
-            infer_model.input_context, infer_model.input_answer, infer_model.word_embedding,
+            infer_model, infer_model.input_data, infer_model.input_context,
+            infer_model.input_response, infer_model.input_label, infer_model.word_embedding,
             hyperparams.train_eval_batch_size, hyperparams.train_eval_metric,
             hyperparams.train_eval_detail_type, global_step, i, ckpt_file, eval_mode)
     
@@ -220,7 +220,7 @@ def main(args):
     elif (args.mode == 'eval'):
         evaluate(logger, hyperparams, enable_debug=False)
     elif (args.mode == 'eval_debug'):
-        evaluate(logger, hyperparams, enable_debug=True
+        evaluate(logger, hyperparams, enable_debug=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
