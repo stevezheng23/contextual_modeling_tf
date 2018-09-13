@@ -44,8 +44,6 @@ def create_default_hyperparams(config_type):
             train_batch_size=32,
             train_eval_batch_size=100,
             train_eval_metric=["bleu"],
-            train_eval_detail_type="full",
-            train_decoding_sample_size=3,
             train_num_epoch=3,
             train_ckpt_output_dir="",
             train_summary_output_dir="",

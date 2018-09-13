@@ -31,7 +31,6 @@ def extrinsic_eval(logger,
                    word_embedding,
                    batch_size,
                    metric_list,
-                   detail_type,
                    global_step,
                    epoch,
                    ckpt_file,
@@ -54,27 +53,22 @@ def extrinsic_eval(logger,
             break
     
     sample_output = []
+    predict_output = []
+    label_output = []
     for i in range(data_size):
         sample_output.append({
             "id": input_data[i]["id"],
             "context": input_data[i]["context"],
             "response": [{
                 "text": response["text"],
-                "score": sample_predict[i][j],
-                "label": response["label"]
+                "score": sample_predict[i][j,0],
+                "label": float(response["label"])
             } for j, response in enumerate(input_data[i]["response"])]
         })
     
-    if detail_type == "simplified":
-        sample_output = {
-            sample["id"]: {
-                "score", sample["response"]["score"],
-                "label", sample["response"]["label"]
-            } for sample in sample_output }
-    
     eval_result_list = []
     for metric in metric_list:
-        score = evaluate_from_data(predict_text, label_text, metric)
+        score = evaluate_from_data(predict_output, label_output, metric)
         summary_writer.add_value_summary(metric, score, global_step)
         eval_result = ExtrinsicEvalLog(metric=metric,
             score=score, sample_output=None, sample_size=len(sample_output))
@@ -83,7 +77,7 @@ def extrinsic_eval(logger,
     eval_result_detail = ExtrinsicEvalLog(metric="detail",
         score=0.0, sample_output=sample_output, sample_size=len(sample_output))
     basic_info = BasicInfoEvalLog(epoch=epoch, global_step=global_step)
-    
+    print(eval_result_detail)
     logger.update_extrinsic_eval(eval_result_list, basic_info)
     logger.update_extrinsic_eval_detail(eval_result_detail, basic_info)
     logger.check_extrinsic_eval()
@@ -149,7 +143,7 @@ def train(logger,
                         infer_model, infer_model.input_data, infer_model.input_context,
                         infer_model.input_response, infer_model.input_label, infer_model.word_embedding,
                         hyperparams.train_eval_batch_size, hyperparams.train_eval_metric,
-                        hyperparams.train_eval_detail_type, global_step, epoch, ckpt_file, "debug")
+                        global_step, epoch, ckpt_file, "debug")
             except tf.errors.OutOfRangeError:
                 train_logger.check()
                 train_summary_writer.add_summary(train_result.summary, global_step)
@@ -160,7 +154,7 @@ def train(logger,
                         infer_model, infer_model.input_data, infer_model.input_context,
                         infer_model.input_response, infer_model.input_label, infer_model.word_embedding,
                         hyperparams.train_eval_batch_size, hyperparams.train_eval_metric,
-                        hyperparams.train_eval_detail_type, global_step, epoch, ckpt_file, "epoch")
+                        global_step, epoch, ckpt_file, "epoch")
                 break
 
     train_summary_writer.close_writer()
@@ -199,7 +193,7 @@ def evaluate(logger,
             infer_model, infer_model.input_data, infer_model.input_context,
             infer_model.input_response, infer_model.input_label, infer_model.word_embedding,
             hyperparams.train_eval_batch_size, hyperparams.train_eval_metric,
-            hyperparams.train_eval_detail_type, global_step, i, ckpt_file, eval_mode)
+            global_step, i, ckpt_file, eval_mode)
     
     infer_summary_writer.close_writer()
     logger.log_print("##### finish evaluation #####")
