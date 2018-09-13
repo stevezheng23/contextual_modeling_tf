@@ -2,6 +2,7 @@ import codecs
 import collections
 import os.path
 import json
+import uuid
 
 import numpy as np
 import tensorflow as tf
@@ -87,7 +88,7 @@ def create_dynamic_pipeline(input_context_word_dataset,
     
     label_pad_id = tf.constant(0, shape=[], dtype=tf.int32)
     input_label = tf.cast(batch_data[4], dtype=tf.float32)
-    input_label_mask = tf.cast(tf.greater_equal(batch_data[4], input_label), dtype=tf.float32)
+    input_label_mask = tf.cast(tf.greater_equal(batch_data[4], label_pad_id), dtype=tf.float32)
     
     return DataPipeline(initializer=iterator.initializer,
         input_context_word=input_context_word, input_context_char=input_context_char,
@@ -444,6 +445,7 @@ def load_tsv_data(input_file):
                 context = items[0]
                 if context not in context_lookup:
                     context_lookup[context] = {
+                        "id": str(uuid.uuid4()),
                         "context": context,
                         "response": []
                     }
