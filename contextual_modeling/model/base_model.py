@@ -148,6 +148,39 @@ class BaseModel(object):
         
         return update_model, clipped_gradients, gradient_norm
     
+    def train(self,
+              sess,
+              word_embedding):
+        """train model"""
+        word_embed_pretrained = self.hyperparams.model_representation_word_embed_pretrained
+        
+        if word_embed_pretrained == True:
+            (_, loss, learning_rate, global_step, batch_size, summary) = sess.run([self.update_op,
+                self.train_loss, self.learning_rate, self.global_step, self.batch_size, self.train_summary],
+                feed_dict={self.word_embedding_placeholder: word_embedding})
+        else:
+            _, loss, learning_rate, global_step, batch_size, summary = sess.run([self.update_op,
+                self.train_loss, self.learning_rate, self.global_step, self.batch_size, self.train_summary])
+                
+        return TrainResult(loss=loss, learning_rate=learning_rate,
+            global_step=global_step, batch_size=batch_size, summary=summary)
+    
+    def infer(self,
+              sess,
+              word_embedding):
+        """infer model"""
+        word_embed_pretrained = self.hyperparams.model_representation_word_embed_pretrained
+        
+        if word_embed_pretrained == True:
+            (infer_predict, batch_size,
+                summary) = sess.run([self.infer_predict, self.batch_size, self.infer_summary],
+                    feed_dict={self.word_embedding_placeholder: word_embedding})
+        else:
+            (infer_predict, batch_size,
+                summary) = sess.run([self.infer_predict, self.batch_size, self.infer_summary])
+        
+        return InferResult(predict=infer_predict, batch_size=batch_size, summary=summary)
+        
     def _get_train_summary(self):
         """get train summary"""
         return tf.summary.merge([tf.summary.scalar("learning_rate", self.learning_rate),
