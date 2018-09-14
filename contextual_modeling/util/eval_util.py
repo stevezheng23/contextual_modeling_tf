@@ -1,52 +1,52 @@
 import numpy as np
 import tensorflow as tf
 
-from external.bleu import *
-from external.rouge import *
+from external.coverage_precision import *
+from external.precision import *
 
-__all__ = ["evaluate_from_data", "evaluate_from_file"]
+__all__ = ["evaluate_from_data"]
 
-def _bleu(pred_data, ref_data):
-    """BLEU score for translation task"""
-    max_order = 4
-    smooth = False
-    score, _, _, _, _, _ = compute_bleu(ref_data, pred_data, max_order, smooth)
-    bleu_score = 100 * score
-    return bleu_score
-
-def _rouge(pred_data, ref_data):
-    """ROUGE score for summarization task"""
-    score_map = rouge(pred_data, ref_data)
-    rouge_score = 100 * score_map["rouge_l/f_score"]
-    return rouge_score
-
-def evaluate_from_data(pred_data, ref_data, metric):
-    """compute evaluation score based on selected metric"""
-    pred_and_ref = [(pred, ref_list) for pred, ref_list in zip(pred_data, ref_data) if pred and ref_list]
-    pred_data = [pred for (pred, _) in pred_and_ref]
-    ref_data = [ref_list for (_, ref_list) in pred_and_ref]
+def _cp_auc_at_k(pred_data, label_data, k):
+    """Coverage-Precision AUC at top K"""
+    eval_option = {
+        "position": [k],
+        "threshold": {
+            "start": 0.0,
+            "end": 1.0,
+            "step": 0.001
+        }
+    }
     
+    cp_auc = get_cp_auc(pred_data, label_data, eval_option)
+    return cp_auc[k]
+
+def _precision_at_k(pred_data, label_data, k):
+    """Precision at K"""
+    eval_option = {
+        "position": [k]
+    }
+    
+    precision = get_precision(pred_data, label_data, eval_option)
+    return precision[k]
+
+def evaluate_from_data(pred_data, label_data, metric):
+    """compute evaluation score based on selected metric"""
     if len(pred_data) == 0 or len(ref_data) == 0:
         return 0.0
     
-    if metric == "bleu":
-        eval_score = _bleu(pred_data, ref_data)
-    elif metric == "rouge":
-        eval_score = _rouge(pred_data, ref_data)
+    if metric == "cp_auc@1":
+        eval_score = _cp_auc_at_n(pred_data, label_data, 1)
+    elif metric == "cp_auc@3":
+        eval_score = _cp_auc_at_n(pred_data, label_data, 3)
+    elif metric == "cp_auc@5":
+        eval_score = _cp_auc_at_n(pred_data, label_data, 5)
+    elif metric == "precision@1":
+        eval_score = _precision_at_k(pred_data, label_data, 1)
+    elif metric == "precision@3":
+        eval_score = _precision_at_k(pred_data, label_data, 3)
+    elif metric == "precision@5":
+        eval_score = _precision_at_k(pred_data, label_data, 5)
     else:
         raise ValueError("unsupported metric {0}".format(metric))
     
-    return eval_score
-
-def evaluate_from_file(pred_file, ref_file, metric):
-    predict = []
-    with codecs.getreader("utf-8")(tf.gfile.GFile(pred_file, "rb")) as file_p:
-        for line in file_p:
-            predict.append(line.strip())
-    reference = []
-    with codecs.getreader("utf-8")(tf.gfile.GFile(ref_file, "rb")) as file_r:
-        for line in file_r:
-            reference.append(line.strip())
-    
-    eval_score = evaluate(predict, reference, metric)
     return eval_score
