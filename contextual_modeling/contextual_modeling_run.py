@@ -56,15 +56,24 @@ def extrinsic_eval(logger,
     predict_output = []
     label_output = []
     for i in range(data_size):
-        sample_output.append({
+        sample = {
             "id": input_data[i]["id"],
             "context": input_data[i]["context"],
-            "response": [{
-                "text": response["text"],
-                "score": sample_predict[i][j,0],
-                "label": float(response["label"])
-            } for j, response in enumerate(input_data[i]["response"])]
-        })
+            "response": []
+        }
+        
+        for j, resp in enumerate(input_data[i]["response"]):
+            predict = float(sample_predict[i][j,0])
+            label = float(resp["label"])
+            response = {
+                "text": resp["text"],
+                "predict": str(predict),
+                "label": str(label)
+            }
+            
+            sample["response"].append(response)
+        
+        sample_output.append(sample)
     
     eval_result_list = []
     for metric in metric_list:
