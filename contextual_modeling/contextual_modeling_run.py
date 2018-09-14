@@ -62,6 +62,8 @@ def extrinsic_eval(logger,
             "response": []
         }
         
+        predict_list = []
+        label_list = []
         for j, resp in enumerate(input_data[i]["response"]):
             predict = float(sample_predict[i][j,0])
             label = float(resp["label"])
@@ -72,8 +74,12 @@ def extrinsic_eval(logger,
             }
             
             sample["response"].append(response)
+            predict_list.append(predict)
+            label_list.append(label)
         
         sample_output.append(sample)
+        predict_output.append(predict_list)
+        label_output.append(label_list)
     
     eval_result_list = []
     for metric in metric_list:
@@ -86,7 +92,7 @@ def extrinsic_eval(logger,
     eval_result_detail = ExtrinsicEvalLog(metric="detail",
         score=0.0, sample_output=sample_output, sample_size=len(sample_output))
     basic_info = BasicInfoEvalLog(epoch=epoch, global_step=global_step)
-    print(eval_result_detail)
+    
     logger.update_extrinsic_eval(eval_result_list, basic_info)
     logger.update_extrinsic_eval_detail(eval_result_detail, basic_info)
     logger.check_extrinsic_eval()
