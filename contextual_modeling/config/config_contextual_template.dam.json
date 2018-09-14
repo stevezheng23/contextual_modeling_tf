@@ -28,7 +28,7 @@
     "train_shuffle_buffer_size": 30000,
     "train_batch_size": 2,
     "train_eval_batch_size": 2,
-    "train_eval_metric": ["f1"],
+    "train_eval_metric": ["cp_auc@1", "precision@1"],
     "train_num_epoch": 3,
     "train_ckpt_output_dir": "output/dam/checkpoint",
     "train_summary_output_dir": "output/dam/summary",

@@ -43,7 +43,7 @@ def create_default_hyperparams(config_type):
             train_shuffle_buffer_size=30000,
             train_batch_size=32,
             train_eval_batch_size=100,
-            train_eval_metric=["bleu"],
+            train_eval_metric=["cp_auc@1", "precision@1"],
             train_num_epoch=3,
             train_ckpt_output_dir="",
             train_summary_output_dir="",
