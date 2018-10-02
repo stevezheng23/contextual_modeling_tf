@@ -2,7 +2,6 @@ import codecs
 import collections
 import os.path
 import json
-import uuid
 
 import numpy as np
 import tensorflow as tf
