@@ -439,20 +439,21 @@ def load_tsv_data(input_file):
         with codecs.getreader("utf-8")(tf.gfile.GFile(input_file, "rb")) as file:
             for line in file:
                 items = line.strip().split(item_separator)
-                if len(items) < 3:
+                if len(items) < 4:
                     continue
                 
-                context = items[0]
+                sample_id = items[0]
+                context = items[1]
                 if context not in context_lookup:
                     context_lookup[context] = {
-                        "id": str(uuid.uuid4()),
+                        "id": sample_id,
                         "context": context,
                         "response": []
                     }
                 
                 response = {
-                    "text": items[1],
-                    "label": items[2]
+                    "text": items[2],
+                    "label": items[3]
                 }
                 
                 context_lookup[context]["response"].append(response)
