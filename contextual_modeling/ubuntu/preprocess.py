@@ -1,7 +1,9 @@
 import argparse
 import json
+import os.path
 import re
 import nltk
+import uuid
 import csv
 
 def add_arguments(parser):
@@ -49,8 +51,8 @@ def preprocess(file_name):
         raise FileNotFoundError("file not found")
     
     context_lookup = {}
-    with open(file_name, "r") as file:
-        file_reader = csv.reader(file, delimiter=',')
+    with open(file_name, "r", encoding="utf8") as file:
+        file_reader = csv.reader(file, delimiter=',', quotechar='"')
         
         subitem_separator = "__EOS__"
         subitem_connector = "|"
