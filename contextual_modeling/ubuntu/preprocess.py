@@ -60,9 +60,10 @@ def preprocess(file_name):
             if len(items) < 3:
                 continue
             
-            context = subitem_connector.join([normalize_text(sentence) for sentence in items[0].split(subitem_separator)])
-            if context not in context_lookup:
-                context_lookup[context] = {
+            context = [normalize_text(sentence) for sentence in items[0].split(subitem_separator)]
+            context_key = subitem_connector.join(context)
+            if context_key not in context_lookup:
+                context_lookup[context_key] = {
                     "id": str(uuid.uuid4()),
                     "context": context,
                     "response": []
@@ -73,7 +74,7 @@ def preprocess(file_name):
                 "label": items[2]
             }
             
-            context_lookup[context]["response"].append(response)
+            context_lookup[context_key]["response"].append(response)
     
     processed_data_list = list(context_lookup.values())
     return processed_data_list
