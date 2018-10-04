@@ -291,7 +291,7 @@ def create_embedding_file(embedding_file,
         tf.gfile.MakeDirs(embedding_dir)
     
     if not tf.gfile.Exists(embedding_file):
-        with codecs.getwriter("utf-8")(open(embedding_file, "w")) as file:
+        with codecs.getwriter("utf-8")(open(embedding_file, "wb")) as file:
             for vocab in embedding_table.keys():
                 embed = embedding_table[vocab]
                 embed_str = " ".join(map(str, embed))
@@ -339,7 +339,7 @@ def create_vocab_file(vocab_file,
         tf.gfile.MakeDirs(vocab_dir)
     
     if not tf.gfile.Exists(vocab_file):
-        with codecs.getwriter("utf-8")(open(vocab_file, "w")) as file:
+        with codecs.getwriter("utf-8")(open(vocab_file, "wb")) as file:
             for vocab in vocab_table:
                 file.write("{0}\n".format(vocab))
 
