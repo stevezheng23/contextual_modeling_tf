@@ -291,7 +291,7 @@ def create_embedding_file(embedding_file,
         tf.gfile.MakeDirs(embedding_dir)
     
     if not tf.gfile.Exists(embedding_file):
-        with codecs.getwriter("utf-8")(tf.gfile.GFile(embedding_file, "w")) as file:
+        with codecs.getwriter("utf-8")(open(embedding_file, "w")) as file:
             for vocab in embedding_table.keys():
                 embed = embedding_table[vocab]
                 embed_str = " ".join(map(str, embed))
@@ -303,7 +303,7 @@ def load_embedding_file(embedding_file,
                         pad):
     """load pre-train embeddings from embedding file"""
     if tf.gfile.Exists(embedding_file):
-        with codecs.getreader("utf-8")(tf.gfile.GFile(embedding_file, "rb")) as file:
+        with codecs.getreader("utf-8")(open(embedding_file, "rb")) as file:
             embedding = {}
             for line in file:
                 items = line.strip().split(' ')
@@ -339,14 +339,14 @@ def create_vocab_file(vocab_file,
         tf.gfile.MakeDirs(vocab_dir)
     
     if not tf.gfile.Exists(vocab_file):
-        with codecs.getwriter("utf-8")(tf.gfile.GFile(vocab_file, "w")) as file:
+        with codecs.getwriter("utf-8")(open(vocab_file, "w")) as file:
             for vocab in vocab_table:
                 file.write("{0}\n".format(vocab))
 
 def load_vocab_file(vocab_file):
     """load vocab data from vocab file"""
     if tf.gfile.Exists(vocab_file):
-        with codecs.getreader("utf-8")(tf.gfile.GFile(vocab_file, "rb")) as file:
+        with codecs.getreader("utf-8")(open(vocab_file, "rb")) as file:
             vocab = {}
             for line in file:
                 items = line.strip().split('\t')
@@ -435,7 +435,7 @@ def load_tsv_data(input_file):
         context_lookup = {}
         item_separator = "\t"
         subitem_separator = "|"
-        with codecs.getreader("utf-8")(tf.gfile.GFile(input_file, "rb")) as file:
+        with codecs.getreader("utf-8")(open(input_file, "rb")) as file:
             for line in file:
                 items = line.strip().split(item_separator)
                 if len(items) < 4:
@@ -477,7 +477,7 @@ def load_json_data(input_file):
         response_data = []
         label_data = []
         subitem_separator = "|"
-        with codecs.getreader("utf-8")(tf.gfile.GFile(input_file, "rb")) as file:
+        with codecs.getreader("utf-8")(open(input_file, "rb") ) as file:
             input_data = json.load(file)
             for item in input_data:
                 context = subitem_separator.join(item["context"])
