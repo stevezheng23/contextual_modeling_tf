@@ -178,6 +178,7 @@ def create_data_pipeline(input_context_word_dataset,
         input_label_placeholder=None, data_size_placeholder=None, batch_size_placeholder=None)
     
 def create_src_dataset(input_data_set,
+                       sentence_reverse,
                        sentence_max_size,
                        word_vocab_index,
                        word_max_size,
@@ -192,26 +193,28 @@ def create_src_dataset(input_data_set,
     
     word_dataset = None
     if word_feat_enable == True:
-        word_dataset = dataset.map(lambda para: generate_word_feat(para, sentence_max_size,
+        word_dataset = dataset.map(lambda para: generate_word_feat(para, sentence_reverse, sentence_max_size,
             word_vocab_index, word_max_size, word_pad))
     
     char_dataset = None
     if char_feat_enable == True:
-        char_dataset = dataset.map(lambda para: generate_char_feat(para, sentence_max_size, word_max_size,
-            char_vocab_index, char_max_size, char_pad))
+        char_dataset = dataset.map(lambda para: generate_char_feat(para, sentence_reverse, sentence_max_size,
+            word_max_size, char_vocab_index, char_max_size, char_pad))
     
     return word_dataset, char_dataset
 
 def create_trg_dataset(input_data_set,
+                       string_reverse,
                        string_max_size):
     """create label dataset for input target data"""
     dataset = input_data_set
     
-    num_dataset = dataset.map(lambda para: generate_num_feat(para, string_max_size))
+    num_dataset = dataset.map(lambda para: generate_num_feat(para, string_reverse, string_max_size))
     
     return num_dataset
 
 def generate_word_feat(paragraph,
+                       sentence_reverse,
                        sentence_max_size,
                        word_vocab_index,
                        word_max_size,
@@ -227,8 +230,8 @@ def generate_word_feat(paragraph,
         return words
     
     sentences = tf.string_split([paragraph], delimiter='|').values
-    sentences = tf.concat([sentences[-sentence_max_size:],
-        tf.constant(word_pad, shape=[sentence_max_size])], axis=0)
+    sentences = sentences[-sentence_max_size:] if sentence_reverse else sentences[:sentence_max_size]
+    sentences = tf.concat([sentences, tf.constant(word_pad, shape=[sentence_max_size])], axis=0)
     sentences = tf.reshape(sentences[:sentence_max_size], shape=[sentence_max_size])
     sentence_words = tf.map_fn(sent_to_word, sentences)
     sentence_words = tf.cast(word_vocab_index.lookup(sentence_words), dtype=tf.int32)
@@ -237,6 +240,7 @@ def generate_word_feat(paragraph,
     return sentence_words
 
 def generate_char_feat(paragraph,
+                       sentence_reverse,
                        sentence_max_size,
                        word_max_size,
                        char_vocab_index,
@@ -263,8 +267,8 @@ def generate_char_feat(paragraph,
         return chars
     
     sentences = tf.string_split([paragraph], delimiter='|').values
-    sentences = tf.concat([sentences[-sentence_max_size:],
-        tf.constant(char_pad, shape=[sentence_max_size])], axis=0)
+    sentences = sentences[-sentence_max_size:] if sentence_reverse else sentences[:sentence_max_size]
+    sentences = tf.concat([sentences, tf.constant(char_pad, shape=[sentence_max_size])], axis=0)
     sentences = tf.reshape(sentences[:sentence_max_size], shape=[sentence_max_size])
     sentence_chars = tf.map_fn(sent_to_char, sentences)
     sentence_chars = tf.cast(char_vocab_index.lookup(sentence_chars), dtype=tf.int32)
@@ -272,11 +276,12 @@ def generate_char_feat(paragraph,
     return sentence_chars
 
 def generate_num_feat(paragraph,
+                      string_reverse,
                       string_max_size):
     """generate numbers for paragraph"""
     strings = tf.string_split([paragraph], delimiter='|').values
-    strings = tf.concat([strings[-string_max_size:],
-        tf.constant("0", shape=[string_max_size])], axis=0)
+    strings = strings[-string_max_size:] if string_reverse else strings[:string_max_size]
+    strings = tf.concat([strings, tf.constant("0", shape=[string_max_size])], axis=0)
     strings = tf.reshape(strings[:string_max_size], shape=[string_max_size])
     string_nums = tf.string_to_number(strings, out_type=tf.int32)
     string_nums = tf.expand_dims(string_nums, axis=-1)
