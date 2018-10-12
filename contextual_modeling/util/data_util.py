@@ -9,7 +9,7 @@ import tensorflow as tf
 from util.default_util import *
 
 __all__ = ["DataPipeline", "create_dynamic_pipeline", "create_data_pipeline",
-           "create_src_dataset", "create_trg_dataset", "generate_word_feat", "generate_char_feat",
+           "create_src_dataset", "create_trg_dataset", "generate_word_feat", "generate_char_feat", "generate_num_feat",
            "create_embedding_file", "load_embedding_file", "convert_embedding",
            "create_vocab_file", "load_vocab_file", "process_vocab_table", "create_word_vocab", "create_char_vocab",
            "load_tsv_data", "load_json_data", "load_contextual_data", "prepare_data", "prepare_contextual_data"]
@@ -415,7 +415,7 @@ def create_word_vocab(input_data):
 
 def create_char_vocab(input_data):
     """create char vocab from input data"""
-    sentence_separator = "| "
+    sentence_separator = "|"
     char_vocab = {}
     for paragraph in input_data:
         sentences = paragraph.strip().split(sentence_separator)
@@ -541,6 +541,9 @@ def prepare_data(logger,
         word_embed_size = len(word_embed_data) if word_embed_data is not None else 0
         logger.log_print("# word embedding table has {0} words".format(word_embed_size))
     
+    word_vocab = None
+    word_vocab_index = None
+    word_vocab_inverted_index = None
     if tf.gfile.Exists(word_vocab_file):
         logger.log_print("# loading word vocab table from {0}".format(word_vocab_file))
         word_vocab = load_vocab_file(word_vocab_file)
