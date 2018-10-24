@@ -610,7 +610,7 @@ class AttentiveModule(object):
         
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
             if self.enable_dropout == True:
-                self.dropout_layer = create_dropout_layer(self.dropout, self.num_gpus, self.default_gpu_id)
+                self.dropout_layer = create_dropout_layer(self.dropout, self.num_gpus, self.default_gpu_id, self.random_seed)
             
             if unit_dim % num_head != 0 or unit_dim / num_head == 0:
                 raise ValueError("unit dim {0} and # head {1} mis-match".format(unit_dim, num_head))
@@ -812,7 +812,7 @@ class AggregationModule(object):
         self.scope = scope
         
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
-            self.dropout_layer = create_dropout_layer(self.dropout, self.num_gpus, self.default_gpu_id)
+            self.dropout_layer = create_dropout_layer(self.dropout, self.num_gpus, self.default_gpu_id, self.random_seed)
             
             self.conv_layer = create_convolution_layer("stacked_3d", 1, self.num_channel,
                 self.num_filter, self.conv_window, self.conv_stride, "SAME", self.activation, [self.dropout], None,
@@ -922,7 +922,7 @@ class WordFeat(object):
             self.embedding_layer = create_embedding_layer(self.vocab_size,
                 self.embed_dim, self.pretrained, 0, 0, self.random_seed, self.trainable)
             
-            self.dropout_layer = create_dropout_layer(self.dropout, 0, 0)
+            self.dropout_layer = create_dropout_layer(self.dropout, 0, 0, self.random_seed)
     
     def __call__(self,
                  input_word,

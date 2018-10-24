@@ -58,17 +58,17 @@ def _create_single_reccurent_cell(unit_dim,
     
     return single_cell
 
-def _creat_recurrent_cell(num_layer,
-                          unit_dim,
-                          cell_type,
-                          activation,
-                          dropout,
-                          forget_bias,
-                          residual_connect,
-                          attention_mechanism,
-                          num_gpus,
-                          default_gpu_id,
-                          random_seed):
+def _create_recurrent_cell(num_layer,
+                           unit_dim,
+                           cell_type,
+                           activation,
+                           dropout,
+                           forget_bias,
+                           residual_connect,
+                           attention_mechanism,
+                           num_gpus,
+                           default_gpu_id,
+                           random_seed):
     """create recurrent cell"""
     cell_list = []
     for i in range(num_layer):
@@ -115,7 +115,7 @@ class RNN(object):
         self.scope = scope
         
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE), tf.device('/CPU:0'):
-            self.cell = _creat_recurrent_cell(self.num_layer, self.unit_dim, self.cell_type,
+            self.cell = _create_recurrent_cell(self.num_layer, self.unit_dim, self.cell_type,
                 self.activation, self.dropout, self.forget_bias, self.residual_connect,
                 self.attention_mechanism, self.num_gpus, self.default_gpu_id, self.random_seed)
     
@@ -171,7 +171,7 @@ class BiRNN(object):
                  default_gpu_id=0,
                  random_seed=0,
                  trainable=True,
-                 scope="rnn"):
+                 scope="bi_rnn"):
         """initialize bi-directional recurrent layer"""
         self.num_layer = num_layer
         self.unit_dim = unit_dim
@@ -188,10 +188,10 @@ class BiRNN(object):
         self.scope = scope
         
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE), tf.device('/CPU:0'):
-            self.fwd_cell = _creat_recurrent_cell(self.num_layer, self.unit_dim, self.cell_type,
+            self.fwd_cell = _create_recurrent_cell(self.num_layer, self.unit_dim, self.cell_type,
                 self.activation, self.dropout, self.forget_bias, self.residual_connect,
                 self.attention_mechanism, self.num_gpus, self.default_gpu_id, self.random_seed)
-            self.bwd_cell = _creat_recurrent_cell(self.num_layer, self.unit_dim, self.cell_type,
+            self.bwd_cell = _create_recurrent_cell(self.num_layer, self.unit_dim, self.cell_type,
                 self.activation, self.dropout, self.forget_bias, self.residual_connect,
                 self.attention_mechanism, self.num_gpus, self.default_gpu_id + self.num_layer, self.random_seed)
     
