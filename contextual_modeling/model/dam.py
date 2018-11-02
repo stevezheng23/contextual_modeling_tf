@@ -44,11 +44,6 @@ class DAM(BaseModel):
             label = self.data_pipeline.input_label
             label_mask = self.data_pipeline.input_label_mask
             
-            self.context_word = context_word
-            self.context_word_mask = context_word_mask
-            self.context_char = context_char
-            self.context_char_mask = context_char_mask
-            
             """build graph for dam model"""
             self.logger.log_print("# build graph")
             predict, predict_mask = self._build_graph(context_word, context_char, response_word, response_char,
@@ -534,7 +529,7 @@ class DAM(BaseModel):
                 sess,
                 ckpt_file,
                 ckpt_type):
-        """restore qanet model from checkpoint"""
+        """restore dam model from checkpoint"""
         if ckpt_file is None:
             raise FileNotFoundError("checkpoint file doesn't exist")
         
