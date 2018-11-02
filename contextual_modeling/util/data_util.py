@@ -109,10 +109,11 @@ def create_data_pipeline(input_context_word_dataset,
                          char_vocab_index,
                          char_pad,
                          char_feat_enable,
+                         enable_shuffle,
+                         buffer_size,
                          data_size,
                          batch_size,
-                         random_seed,
-                         enable_shuffle):
+                         random_seed):
     """create data pipeline for contextual model"""
     default_pad_id = tf.constant(0, shape=[], dtype=tf.int32)
     default_dataset_tensor = tf.constant(0, shape=[1,1], dtype=tf.int32)
@@ -135,7 +136,7 @@ def create_data_pipeline(input_context_word_dataset,
         input_response_word_dataset, input_response_char_dataset, input_label_dataset))
     
     if enable_shuffle == True:
-        buffer_size = data_size
+        buffer_size = min(buffer_size, data_size)
         dataset = dataset.shuffle(buffer_size, random_seed)
     
     dataset = dataset.batch(batch_size=batch_size)
