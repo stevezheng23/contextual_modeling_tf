@@ -44,11 +44,6 @@ class DAM(BaseModel):
             label = self.data_pipeline.input_label
             label_mask = self.data_pipeline.input_label_mask
             
-            self.context_word = context_word
-            self.context_word_mask = context_word_mask
-            self.context_char = context_char
-            self.context_char_mask = context_char_mask
-            
             """build graph for dam model"""
             self.logger.log_print("# build graph")
             predict, predict_mask = self._build_graph(context_word, context_char, response_word, response_char,
@@ -534,7 +529,7 @@ class DAM(BaseModel):
                 sess,
                 ckpt_file,
                 ckpt_type):
-        """restore qanet model from checkpoint"""
+        """restore dam model from checkpoint"""
         if ckpt_file is None:
             raise FileNotFoundError("checkpoint file doesn't exist")
         
@@ -930,7 +925,7 @@ class WordFeat(object):
         """call word-level featurization layer"""
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
             input_word_embedding_mask = input_word_mask
-            input_word_embedding = tf.squeeze(self.embedding_layer(input_word), axis=-2) * input_word_embedding_mask
+            input_word_embedding = tf.squeeze(self.embedding_layer(input_word), axis=-2)
             
             (input_word_dropout,
                 input_word_dropout_mask) = self.dropout_layer(input_word_embedding, input_word_embedding_mask)
@@ -991,7 +986,7 @@ class CharFeat(object):
         """call char-level featurization layer"""
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
             input_char_embedding_mask = tf.expand_dims(input_char_mask, axis=-1)
-            input_char_embedding = self.embedding_layer(input_char) * input_char_embedding_mask
+            input_char_embedding = self.embedding_layer(input_char)
             
             (input_char_conv,
                 input_char_conv_mask) = self.conv_layer(input_char_embedding, input_char_embedding_mask)
