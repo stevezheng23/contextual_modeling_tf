@@ -41,6 +41,8 @@ def _create_single_reccurent_cell(unit_dim,
     elif cell_type == "gru":
         single_cell = tf.contrib.rnn.GRUCell(num_units=unit_dim, activation=recurrent_activation,
             kernel_initializer=weight_initializer, bias_initializer=bias_initializer)
+    elif cell_type == "sru":
+        single_cell = tf.contrib.rnn.SRUCell(num_units=unit_dim, activation=recurrent_activation)
     else:
         raise ValueError("unsupported cell type {0}".format(cell_type))
     
@@ -72,7 +74,7 @@ def _create_recurrent_cell(num_layer,
     """create recurrent cell"""
     cell_list = []
     for i in range(num_layer):
-        device_spec = get_device_spec(default_gpu_id + i, num_gpus)
+        device_spec = get_device_spec(default_gpu_id, num_gpus)
         
         single_cell = _create_single_reccurent_cell(unit_dim, cell_type, activation,
             dropout, forget_bias, residual_connect, attention_mechanism, device_spec, random_seed)
@@ -114,7 +116,7 @@ class RNN(object):
         self.trainable = trainable
         self.scope = scope
         
-        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE), tf.device('/CPU:0'):
+        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
             self.cell = _create_recurrent_cell(self.num_layer, self.unit_dim, self.cell_type,
                 self.activation, self.dropout, self.forget_bias, self.residual_connect,
                 self.attention_mechanism, self.num_gpus, self.default_gpu_id, self.random_seed)
@@ -187,7 +189,7 @@ class BiRNN(object):
         self.trainable = trainable
         self.scope = scope
         
-        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE), tf.device('/CPU:0'):
+        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
             self.fwd_cell = _create_recurrent_cell(self.num_layer, self.unit_dim, self.cell_type,
                 self.activation, self.dropout, self.forget_bias, self.residual_connect,
                 self.attention_mechanism, self.num_gpus, self.default_gpu_id, self.random_seed)

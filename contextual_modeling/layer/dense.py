@@ -36,7 +36,7 @@ class Dense(object):
         self.scope = scope
         self.device_spec = get_device_spec(default_gpu_id, num_gpus)
         
-        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE), tf.device('/CPU:0'):
+        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE), tf.device(self.device_spec):
             weight_initializer = create_variable_initializer("glorot_uniform", self.random_seed)
             bias_initializer = create_variable_initializer("zero")
             self.dense_layer = tf.layers.Dense(units=self.unit_dim, activation=None, use_bias=True,
@@ -110,7 +110,7 @@ class DoubleDense(object):
         self.scope = scope
         self.device_spec = get_device_spec(default_gpu_id, num_gpus)
         
-        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE), tf.device('/CPU:0'):
+        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE), tf.device(self.device_spec):
             weight_initializer = create_variable_initializer("glorot_uniform", self.random_seed)
             bias_initializer = create_variable_initializer("zero")
             self.inner_dense_layer = tf.layers.Dense(units=self.unit_dim * self.inner_scale, activation=None, use_bias=True,
@@ -191,11 +191,11 @@ class StackedDense(object):
         self.scope = scope
         self.device_spec = get_device_spec(default_gpu_id, num_gpus)
         
-        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE), tf.device('/CPU:0'):
+        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE), tf.device(self.device_spec):
             self.dense_layer_list = []
             for i in range(self.num_layer):
                 layer_scope = "layer_{0}".format(i)
-                layer_default_gpu_id = self.default_gpu_id + i
+                layer_default_gpu_id = self.default_gpu_id
                 sublayer_dropout = self.dropout[i] if self.dropout != None else 0.0
                 sublayer_layer_dropout = self.layer_dropout[i] if self.layer_dropout != None else 0.0
                 dense_layer = Dense(unit_dim=self.unit_dim, activation=self.activation,
@@ -254,11 +254,11 @@ class StackedDoubleDense(object):
         self.scope = scope
         self.device_spec = get_device_spec(default_gpu_id, num_gpus)
         
-        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE), tf.device('/CPU:0'):
+        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE), tf.device(self.device_spec):
             self.dense_layer_list = []
             for i in range(self.num_layer):
                 layer_scope = "layer_{0}".format(i)
-                layer_default_gpu_id = self.default_gpu_id + i
+                layer_default_gpu_id = self.default_gpu_id
                 sublayer_dropout = self.dropout[i] if self.dropout != None else 0.0
                 sublayer_layer_dropout = self.layer_dropout[i] if self.layer_dropout != None else 0.0
                 dense_layer = DoubleDense(unit_dim=self.unit_dim, inner_scale=self.inner_scale, activation=self.activation,
