@@ -452,7 +452,7 @@ class DAM(BaseModel):
             aggregated_matching = tf.reshape(aggregated_matching, shape=aggregated_matching_shape)
             aggregated_matching_mask = tf.expand_dims(tf.reduce_max(aggregated_matching_mask, axis=[2, 3, 4, 5]), axis=-1)
             
-            projection_layer = create_dense_layer("single", 1, 1, 1, "", [projection_dropout], None, False, False, 
+            projection_layer = create_dense_layer("single", 1, 1, 1, "", [projection_dropout], None, False, False, True,
                 self.num_gpus, default_matching_gpu_id, self.regularizer, random_seed, projection_trainable)
             
             projection_matching, projection_matching_mask = projection_layer(aggregated_matching, aggregated_matching_mask)
@@ -623,7 +623,7 @@ class AttentiveModule(object):
             
             dense_layer_dropout = [self.layer_dropout * float(self.sublayer_skip + 1) / self.num_sublayer]
             self.dense_layer = create_dense_layer("double", 1, self.unit_dim, 4, self.activation, [self.dropout],
-                dense_layer_dropout, True, True, num_gpus, default_gpu_id, self.regularizer, self.random_seed, self.trainable)
+                dense_layer_dropout, True, True, True, num_gpus, default_gpu_id, self.regularizer, self.random_seed, self.trainable)
     
     def __call__(self,
                  input_src_data,
