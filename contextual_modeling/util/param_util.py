@@ -77,7 +77,7 @@ def create_default_hyperparams(config_type):
             train_optimizer_adam_beta_2=0.999,
             train_optimizer_adam_epsilon=1e-07,
             model_type="dam",
-            model_scope="contextual",
+            model_scope="contextual_modeling",
             model_representation_word_embed_dim=300,
             model_representation_word_dropout=0.1,
             model_representation_word_embed_pretrained=True,
