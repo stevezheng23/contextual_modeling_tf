@@ -584,6 +584,7 @@ class AttentiveModule(object):
                  activation,
                  dropout,
                  layer_dropout,
+                 is_self=False,
                  num_gpus=1,
                  default_gpu_id=0,
                  regularizer=None,
@@ -596,6 +597,7 @@ class AttentiveModule(object):
         self.activation = activation
         self.enable_dropout, self.dropout = dropout
         self.sublayer_skip, self.num_sublayer, self.layer_dropout = layer_dropout
+        self.is_self = is_self
         self.num_gpus = num_gpus
         self.default_gpu_id = default_gpu_id
         self.regularizer = regularizer
@@ -618,7 +620,7 @@ class AttentiveModule(object):
             
             attention_layer_dropout = self.layer_dropout * float(self.sublayer_skip) / self.num_sublayer
             self.attention_layer = create_attention_layer("multi_head_att", self.unit_dim,
-                self.unit_dim, att_dim_list, "scaled_dot", attention_layer_dropout, True, True, True,
+                self.unit_dim, att_dim_list, "scaled_dot", attention_layer_dropout, True, True, self.is_self,
                 None, self.num_gpus, self.default_gpu_id, self.regularizer, self.random_seed, self.trainable)
             
             dense_layer_dropout = [self.layer_dropout * float(self.sublayer_skip + 1) / self.num_sublayer]
@@ -683,7 +685,7 @@ class StackedAttentiveModule(object):
                 layer_default_gpu_id = self.default_gpu_id + i
                 module_layer = AttentiveModule(num_head=self.num_head, unit_dim=self.unit_dim, activation=self.activation,
                     dropout=(enable_dropout, self.dropout), layer_dropout=(sublayer_skip, num_sublayer, self.layer_dropout),
-                    num_gpus=self.num_gpus, default_gpu_id=layer_default_gpu_id, regularizer=self.regularizer,
+                    is_self=True, num_gpus=self.num_gpus, default_gpu_id=layer_default_gpu_id, regularizer=self.regularizer,
                     random_seed=self.random_seed, trainable=self.trainable, scope=layer_scope)
                 self.module_layer_list.append(module_layer)
     
@@ -741,7 +743,7 @@ class MultiAttentiveModule(object):
                 layer_default_gpu_id = self.default_gpu_id + i
                 module_layer = AttentiveModule(num_head=self.num_head, unit_dim=self.unit_dim,
                     activation=self.activation, dropout=(True, self.dropout), layer_dropout=(0, 2, self.layer_dropout),
-                    num_gpus=self.num_gpus, default_gpu_id=layer_default_gpu_id, regularizer=self.regularizer,
+                    is_self=False, num_gpus=self.num_gpus, default_gpu_id=layer_default_gpu_id, regularizer=self.regularizer,
                     random_seed=self.random_seed, trainable=self.trainable, scope=layer_scope)
                 self.module_layer_list.append(module_layer)
     
