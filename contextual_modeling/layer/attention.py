@@ -453,9 +453,6 @@ class Attention(object):
                 input_attention_mask, axis=-1, keepdims=True) * input_attention_mask
             input_attention = tf.matmul(input_attention_weight, input_trg_attention)
             
-            output_attention_score = input_attention_score
-            output_score_mask = input_attention_mask
-            
             if self.residual_connect == True and self.is_self == True:
                 output_attention, output_mask = tf.cond(tf.random_uniform([]) < self.layer_dropout,
                     lambda: (input_src_data, input_src_mask),
@@ -470,7 +467,7 @@ class Attention(object):
                 output_mask = tf.reshape(output_mask,
                     shape=tf.concat([input_src_mask_shape[:-2], input_trg_mask_shape[-2:]], axis=0))
         
-        return output_attention, output_mask, output_attention_score, output_score_mask
+        return output_attention, output_mask
     
     def get_attention_matrix(self):
         return self.attention_matrix
