@@ -239,6 +239,7 @@ class DAM(BaseModel):
         context_understanding_unit_dim = self.hyperparams.model_understanding_context_unit_dim
         context_understanding_hidden_activation = self.hyperparams.model_understanding_context_hidden_activation
         context_understanding_dropout = self.hyperparams.model_understanding_context_dropout if self.mode == "train" else 0.0
+        context_understanding_att_dropout = self.hyperparams.model_understanding_context_attention_dropout if self.mode == "train" else 0.0
         context_understanding_layer_dropout = self.hyperparams.model_understanding_context_layer_dropout if self.mode == "train" else 0.0
         context_understanding_trainable = self.hyperparams.model_understanding_context_trainable
         response_understanding_num_layer = self.hyperparams.model_understanding_response_num_layer
@@ -246,6 +247,7 @@ class DAM(BaseModel):
         response_understanding_unit_dim = self.hyperparams.model_understanding_response_unit_dim
         response_understanding_hidden_activation = self.hyperparams.model_understanding_response_hidden_activation
         response_understanding_dropout = self.hyperparams.model_understanding_response_dropout if self.mode == "train" else 0.0
+        response_understanding_att_dropout = self.hyperparams.model_understanding_response_attention_dropout if self.mode == "train" else 0.0
         response_understanding_layer_dropout = self.hyperparams.model_understanding_response_layer_dropout if self.mode == "train" else 0.0
         response_understanding_trainable = self.hyperparams.model_understanding_response_trainable
         enable_understanding_sharing = self.hyperparams.model_understanding_enable_sharing
@@ -263,8 +265,8 @@ class DAM(BaseModel):
                 context_understanding_layer = StackedAttentiveModule(num_layer=context_understanding_num_layer,
                     num_head=context_understanding_num_head, unit_dim=context_understanding_unit_dim,
                     activation=context_understanding_hidden_activation, dropout=context_understanding_dropout,
-                    layer_dropout=context_understanding_layer_dropout, num_gpus=self.num_gpus,
-                    default_gpu_id=default_understanding_gpu_id, regularizer=self.regularizer,
+                    att_dropout=context_understanding_att_dropout, layer_dropout=context_understanding_layer_dropout,
+                    num_gpus=self.num_gpus, default_gpu_id=default_understanding_gpu_id, regularizer=self.regularizer,
                     random_seed=random_seed, trainable=context_understanding_trainable)
                 
                 (context_understanding_fusion,
@@ -293,8 +295,8 @@ class DAM(BaseModel):
                     response_understanding_layer = StackedAttentiveModule(num_layer=response_understanding_num_layer,
                         num_head=response_understanding_num_head, unit_dim=response_understanding_unit_dim,
                         activation=response_understanding_hidden_activation, dropout=response_understanding_dropout,
-                        layer_dropout=response_understanding_layer_dropout, num_gpus=self.num_gpus,
-                        default_gpu_id=default_understanding_gpu_id,regularizer=self.regularizer,
+                        att_dropout=response_understanding_att_dropout, layer_dropout=response_understanding_layer_dropout,
+                        num_gpus=self.num_gpus, default_gpu_id=default_understanding_gpu_id,regularizer=self.regularizer,
                         random_seed=random_seed, trainable=response_understanding_trainable)
                 
                 (response_understanding_fusion,
@@ -323,6 +325,7 @@ class DAM(BaseModel):
         context2response_interaction_unit_dim = self.hyperparams.model_interaction_context2response_unit_dim
         context2response_interaction_hidden_activation = self.hyperparams.model_interaction_context2response_hidden_activation
         context2response_interaction_dropout = self.hyperparams.model_interaction_context2response_dropout if self.mode == "train" else 0.0
+        context2response_interaction_att_dropout = self.hyperparams.model_interaction_context2response_attention_dropout if self.mode == "train" else 0.0
         context2response_interaction_layer_dropout = self.hyperparams.model_interaction_context2response_layer_dropout if self.mode == "train" else 0.0
         context2response_interaction_trainable = self.hyperparams.model_interaction_context2response_trainable
         response2context_interaction_num_layer = self.hyperparams.model_interaction_response2context_num_layer
@@ -330,6 +333,7 @@ class DAM(BaseModel):
         response2context_interaction_unit_dim = self.hyperparams.model_interaction_response2context_unit_dim
         response2context_interaction_hidden_activation = self.hyperparams.model_interaction_response2context_hidden_activation
         response2context_interaction_dropout = self.hyperparams.model_interaction_response2context_dropout if self.mode == "train" else 0.0
+        response2context_interaction_att_dropout = self.hyperparams.model_interaction_response2context_attention_dropout if self.mode == "train" else 0.0
         response2context_interaction_layer_dropout = self.hyperparams.model_interaction_response2context_layer_dropout if self.mode == "train" else 0.0
         response2context_interaction_trainable = self.hyperparams.model_interaction_response2context_trainable
         random_seed = self.hyperparams.train_random_seed
@@ -341,8 +345,8 @@ class DAM(BaseModel):
                 context2response_interaction_layer = MultiAttentiveModule(num_layer=context2response_interaction_num_layer,
                     num_head=context2response_interaction_num_head, unit_dim=context2response_interaction_unit_dim,
                     activation=context2response_interaction_hidden_activation, dropout=context2response_interaction_dropout,
-                    layer_dropout=context2response_interaction_layer_dropout, num_gpus=self.num_gpus,
-                    default_gpu_id=default_interaction_gpu_id, regularizer=self.regularizer,
+                    att_dropout=context2response_interaction_att_dropout, layer_dropout=context2response_interaction_layer_dropout,
+                    num_gpus=self.num_gpus, default_gpu_id=default_interaction_gpu_id, regularizer=self.regularizer,
                     random_seed=random_seed, trainable=context2response_interaction_trainable)
                 
                 (context2response_interaction,
@@ -354,8 +358,8 @@ class DAM(BaseModel):
                 response2context_interaction_layer = MultiAttentiveModule(num_layer=response2context_interaction_num_layer,
                     num_head=response2context_interaction_num_head, unit_dim=response2context_interaction_unit_dim,
                     activation=response2context_interaction_hidden_activation, dropout=response2context_interaction_dropout,
-                    layer_dropout=response2context_interaction_layer_dropout, num_gpus=self.num_gpus,
-                    default_gpu_id=default_interaction_gpu_id, regularizer=self.regularizer,
+                    att_dropout=response2context_interaction_att_dropout, layer_dropout=response2context_interaction_layer_dropout,
+                    num_gpus=self.num_gpus, default_gpu_id=default_interaction_gpu_id, regularizer=self.regularizer,
                     random_seed=random_seed, trainable=response2context_interaction_trainable)
                 
                 (response2context_interaction,
@@ -583,6 +587,7 @@ class AttentiveModule(object):
                  unit_dim,
                  activation,
                  dropout,
+                 att_dropout,
                  layer_dropout,
                  is_self=False,
                  num_gpus=1,
@@ -595,7 +600,8 @@ class AttentiveModule(object):
         self.num_head = num_head
         self.unit_dim = unit_dim
         self.activation = activation
-        self.enable_dropout, self.dropout = dropout
+        self.dropout = dropout
+        self.att_dropout = att_dropout
         self.sublayer_skip, self.num_sublayer, self.layer_dropout = layer_dropout
         self.is_self = is_self
         self.num_gpus = num_gpus
@@ -606,9 +612,6 @@ class AttentiveModule(object):
         self.scope = scope
         
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
-            if self.enable_dropout == True:
-                self.dropout_layer = create_dropout_layer(self.dropout, self.num_gpus, self.default_gpu_id, self.random_seed)
-            
             if unit_dim % num_head != 0 or unit_dim / num_head == 0:
                 raise ValueError("unit dim {0} and # head {1} mis-match".format(unit_dim, num_head))
             
@@ -618,14 +621,16 @@ class AttentiveModule(object):
                 att_dim = [head_dim, head_dim, head_dim]
                 att_dim_list.append(att_dim)
             
-            attention_layer_dropout = self.layer_dropout * float(self.sublayer_skip) / self.num_sublayer
+            att_layer_dropout = self.layer_dropout * float(self.sublayer_skip) / self.num_sublayer
             self.attention_layer = create_attention_layer("multi_head_att", self.unit_dim,
-                self.unit_dim, att_dim_list, "scaled_dot", attention_layer_dropout, True, True, self.is_self,
-                None, self.num_gpus, self.default_gpu_id, self.regularizer, self.random_seed, self.trainable)
+                self.unit_dim, att_dim_list, "scaled_dot", self.dropout, self.att_dropout, att_layer_dropout,
+                True, True, self.is_self, None, self.num_gpus, self.default_gpu_id, self.regularizer, self.random_seed, self.trainable)
             
             dense_layer_dropout = [self.layer_dropout * float(self.sublayer_skip + 1) / self.num_sublayer]
             self.dense_layer = create_dense_layer("double", 1, self.unit_dim, 4, self.activation, [self.dropout],
                 dense_layer_dropout, True, True, True, num_gpus, default_gpu_id, self.regularizer, self.random_seed, self.trainable)
+            
+            self.dropout_layer = create_dropout_layer(self.dropout, self.num_gpus, self.default_gpu_id, self.random_seed)
     
     def __call__(self,
                  input_src_data,
@@ -634,15 +639,10 @@ class AttentiveModule(object):
                  input_trg_mask):
         """call attentive-module layer"""
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
-            if self.enable_dropout == True:
-                input_src_data, input_src_mask = self.dropout_layer(input_src_data, input_src_mask)
-                input_trg_data, input_trg_mask = self.dropout_layer(input_trg_data, input_trg_mask)
-            
             input_attention, input_attention_mask = self.attention_layer(input_src_data, input_trg_data, input_src_mask, input_trg_mask)
             input_dense, input_dense_mask = self.dense_layer(input_attention, input_attention_mask)
             
-            output_module = input_dense
-            output_module_mask = input_dense_mask
+            output_module, output_module_mask = self.dropout_layer(input_dense, input_dense_mask)
         
         return output_module, output_module_mask
 
@@ -654,6 +654,7 @@ class StackedAttentiveModule(object):
                  unit_dim,
                  activation,
                  dropout,
+                 att_dropout,
                  layer_dropout,
                  num_gpus=1,
                  default_gpu_id=0,
@@ -667,6 +668,7 @@ class StackedAttentiveModule(object):
         self.unit_dim = unit_dim
         self.activation = activation
         self.dropout = dropout
+        self.att_dropout = att_dropout
         self.layer_dropout = layer_dropout
         self.num_gpus = num_gpus
         self.default_gpu_id = default_gpu_id
@@ -680,11 +682,10 @@ class StackedAttentiveModule(object):
             num_sublayer = 2 * self.num_layer
             for i in range(self.num_layer):
                 layer_scope = "layer_{0}".format(i)
-                enable_dropout = True if i % 2 == 0 else False
                 sublayer_skip = 2 * i
                 layer_default_gpu_id = self.default_gpu_id + i
                 module_layer = AttentiveModule(num_head=self.num_head, unit_dim=self.unit_dim, activation=self.activation,
-                    dropout=(enable_dropout, self.dropout), layer_dropout=(sublayer_skip, num_sublayer, self.layer_dropout),
+                    dropout=self.dropout, att_dropout=self.att_dropout, layer_dropout=(sublayer_skip, num_sublayer, self.layer_dropout),
                     is_self=True, num_gpus=self.num_gpus, default_gpu_id=layer_default_gpu_id, regularizer=self.regularizer,
                     random_seed=self.random_seed, trainable=self.trainable, scope=layer_scope)
                 self.module_layer_list.append(module_layer)
@@ -715,6 +716,7 @@ class MultiAttentiveModule(object):
                  unit_dim,
                  activation,
                  dropout,
+                 att_dropout,
                  layer_dropout,
                  num_gpus=1,
                  default_gpu_id=0,
@@ -728,6 +730,7 @@ class MultiAttentiveModule(object):
         self.unit_dim = unit_dim
         self.activation = activation
         self.dropout = dropout
+        self.att_dropout = att_dropout
         self.layer_dropout = layer_dropout
         self.num_gpus = num_gpus
         self.default_gpu_id = default_gpu_id
@@ -741,8 +744,8 @@ class MultiAttentiveModule(object):
             for i in range(self.num_layer):
                 layer_scope = "layer_{0}".format(i)
                 layer_default_gpu_id = self.default_gpu_id + i
-                module_layer = AttentiveModule(num_head=self.num_head, unit_dim=self.unit_dim,
-                    activation=self.activation, dropout=(True, self.dropout), layer_dropout=(0, 2, self.layer_dropout),
+                module_layer = AttentiveModule(num_head=self.num_head, unit_dim=self.unit_dim, activation=self.activation,
+                    dropout=self.dropout, att_dropout=self.att_dropout, layer_dropout=(0, 2, self.layer_dropout),
                     is_self=False, num_gpus=self.num_gpus, default_gpu_id=layer_default_gpu_id, regularizer=self.regularizer,
                     random_seed=self.random_seed, trainable=self.trainable, scope=layer_scope)
                 self.module_layer_list.append(module_layer)
@@ -903,6 +906,7 @@ class WordFeat(object):
                  embed_dim,
                  dropout,
                  pretrained,
+                 regularizer=None,
                  random_seed=0,
                  trainable=True,
                  scope="word_feat"):
@@ -911,13 +915,14 @@ class WordFeat(object):
         self.embed_dim = embed_dim
         self.dropout = dropout
         self.pretrained = pretrained
+        self.regularizer = regularizer
         self.random_seed = random_seed
         self.trainable = trainable
         self.scope = scope
         
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
             self.embedding_layer = create_embedding_layer(self.vocab_size,
-                self.embed_dim, self.pretrained, 0, 0, self.random_seed, self.trainable)
+                self.embed_dim, self.pretrained, 0, 0, self.regularizer, self.random_seed, self.trainable)
             
             self.dropout_layer = create_dropout_layer(self.dropout, 0, 0, self.random_seed)
     
@@ -974,7 +979,7 @@ class CharFeat(object):
         
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
             self.embedding_layer = create_embedding_layer(self.vocab_size,
-                self.embed_dim, False, 0, 0, self.random_seed, self.trainable)
+                self.embed_dim, False, 0, 0, self.regularizer, self.random_seed, self.trainable)
             
             self.conv_layer = create_convolution_layer("stacked_multi_1d", 1, self.embed_dim,
                 self.unit_dim, self.window_size, 1, "SAME", self.activation, [self.dropout], None,
