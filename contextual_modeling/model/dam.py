@@ -172,8 +172,8 @@ class DAM(BaseModel):
             
             if word_feat_enable == True:
                 self.logger.log_print("# build word-level representation layer")
-                word_feat_layer = WordFeat(vocab_size=word_vocab_size, embed_dim=word_embed_dim,
-                    dropout=word_dropout, pretrained=word_embed_pretrained, random_seed=random_seed, trainable=word_feat_trainable)
+                word_feat_layer = WordFeat(vocab_size=word_vocab_size, embed_dim=word_embed_dim, dropout=word_dropout,
+                    pretrained=word_embed_pretrained, regularizer=self.regularizer, random_seed=random_seed, trainable=word_feat_trainable)
                 
                 (input_context_word_feat,
                     input_context_word_feat_mask) = word_feat_layer(input_context_word, input_context_word_mask)

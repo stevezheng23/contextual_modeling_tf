@@ -588,7 +588,6 @@ class MaxAttention(object):
             input_attention_mask = tf.transpose(tf.reduce_max(input_attention_mask, axis=-1, keepdims=True), perm=[0, 2, 1])
             input_attention_score = input_attention_score * input_attention_mask
             
-            
             input_attention_weight = softmax_with_mask(input_attention_score,
                 input_attention_mask, axis=-1, keepdims=True) * input_attention_mask
             input_attention_weight, _ = self.att_dropout_layer(input_attention_weight, input_attention_mask)
@@ -727,7 +726,6 @@ class CoAttention(object):
             input_s2t_att_weight = softmax_with_mask(input_s2t_att_score,
                 input_s2t_att_mask, axis=-1, keepdims=True) * input_s2t_att_mask
             input_s2t_att_weight, _ = self.s2t_att_dropout_layer(input_s2t_att_weight, input_s2t_att_mask)
-            
             input_t2s_att_weight = softmax_with_mask(input_t2s_att_score,
                 input_t2s_att_mask, axis=-1, keepdims=True) * input_t2s_att_mask
             input_t2s_att_weight, _ = self.t2s_att_dropout_layer(input_t2s_att_weight, input_t2s_att_mask)
