@@ -51,12 +51,11 @@ class DAM(BaseModel):
             self.predict = predict
             self.predict_mask = predict_mask
             
-            self.variable_list = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
-            self.variable_lookup = {v.op.name: v for v in self.variable_list}
-            
             if self.hyperparams.train_ema_enable == True:
-                self.ema = tf.train.ExponentialMovingAverage(decay=self.hyperparams.train_ema_decay_rate)
-                self.variable_lookup = {self.ema.average_name(v): v for v in self.variable_list}
+                self.ema = self._get_exponential_moving_average(self.global_step)
+                self.variable_list = self.ema.variables_to_restore(tf.trainable_variables())
+            else:
+                self.variable_list = tf.global_variables()
             
             if self.mode == "infer":
                 """get infer answer"""
@@ -100,14 +99,13 @@ class DAM(BaseModel):
                 
                 """minimize optimization loss"""
                 self.logger.log_print("# setup loss minimization mechanism")
-                self.update_model, self.clipped_gradients, self.gradient_norm = self._minimize_loss(self.train_loss)
+                self.opt_op, self.clipped_gradients, self.gradient_norm = self._minimize_loss(self.train_loss)
                 
                 if self.hyperparams.train_ema_enable == True:
-                    with tf.control_dependencies([self.update_model]):
-                        self.update_op = self.ema.apply(self.variable_list)
-                        self.variable_lookup = {self.ema.average_name(v): self.ema.average(v) for v in self.variable_list}
+                    with tf.control_dependencies([self.opt_op]):
+                        self.update_op = self.ema.apply(tf.trainable_variables())
                 else:
-                    self.update_op = self.update_model
+                    self.update_op = self.opt_op
                 
                 """create train summary"""
                 self.train_summary = self._get_train_summary()
@@ -127,8 +125,14 @@ class DAM(BaseModel):
             
             self.ckpt_debug_name = os.path.join(self.ckpt_debug_dir, "model_debug_ckpt")
             self.ckpt_epoch_name = os.path.join(self.ckpt_epoch_dir, "model_epoch_ckpt")
-            self.ckpt_debug_saver = tf.train.Saver(self.variable_lookup)
-            self.ckpt_epoch_saver = tf.train.Saver(self.variable_lookup, max_to_keep=self.hyperparams.train_num_epoch)
+            
+            if self.mode == "infer":
+                self.ckpt_debug_saver = tf.train.Saver(self.variable_list)
+                self.ckpt_epoch_saver = tf.train.Saver(self.variable_list, max_to_keep=self.hyperparams.train_num_epoch)  
+            
+            if self.mode == "train":
+                self.ckpt_debug_saver = tf.train.Saver()
+                self.ckpt_epoch_saver = tf.train.Saver(max_to_keep=self.hyperparams.train_num_epoch)   
     
     def _build_representation_layer(self,
                                     input_context_word,
@@ -918,7 +922,7 @@ class WordFeat(object):
         
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
             self.embedding_layer = create_embedding_layer(self.vocab_size,
-                self.embed_dim, self.pretrained, 0, 0, self.regularizer, self.random_seed, self.trainable)
+                self.embed_dim, self.pretrained, 0, 0, None, self.random_seed, self.trainable)
             
             self.dropout_layer = create_dropout_layer(self.dropout, 0, 0, self.random_seed)
     
@@ -975,7 +979,7 @@ class CharFeat(object):
         
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
             self.embedding_layer = create_embedding_layer(self.vocab_size,
-                self.embed_dim, False, 0, 0, self.regularizer, self.random_seed, self.trainable)
+                self.embed_dim, False, 0, 0, None, self.random_seed, self.trainable)
             
             self.conv_layer = create_convolution_layer("stacked_multi_1d", 1, self.embed_dim,
                 self.unit_dim, self.window_size, 1, "SAME", self.activation, [self.dropout], None,
