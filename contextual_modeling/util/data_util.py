@@ -59,6 +59,7 @@ def create_dynamic_pipeline(input_context_word_dataset,
         input_response_word_dataset, input_response_char_dataset, input_label_dataset))
     
     dataset = dataset.batch(batch_size=batch_size_placeholder)
+    dataset = dataset.prefetch(buffer_size=1)
     
     iterator = dataset.make_initializable_iterator()
     batch_data = iterator.get_next()
@@ -140,6 +141,7 @@ def create_data_pipeline(input_context_word_dataset,
         dataset = dataset.shuffle(buffer_size, random_seed)
     
     dataset = dataset.batch(batch_size=batch_size)
+    dataset = dataset.prefetch(buffer_size=1)
     
     iterator = dataset.make_initializable_iterator()
     batch_data = iterator.get_next()
