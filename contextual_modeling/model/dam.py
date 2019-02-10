@@ -814,9 +814,9 @@ class AggregationModule(object):
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
             self.dropout_layer = create_dropout_layer(self.dropout, self.num_gpus, self.default_gpu_id, self.random_seed)
             
-            self.conv_layer = create_convolution_layer("stacked_3d", 1, self.num_channel,
-                self.num_filter, self.conv_window, self.conv_stride, "SAME", self.activation, [self.dropout], None,
-                False, False, self.num_gpus, self.default_gpu_id, self.regularizer, self.random_seed, self.trainable)
+            self.conv_layer = create_convolution_layer("stacked_3d", 1, self.num_channel, self.num_filter, 
+                self.conv_window, self.conv_stride, "SAME", self.activation, [self.dropout], None, False, False, True,
+                self.num_gpus, self.default_gpu_id, self.regularizer, self.random_seed, self.trainable)
             
             pooling_type = "{0}_3d".format(self.pooling_type)
             self.pooling_layer = create_pooling_layer(pooling_type, self.pool_window, self.pool_stride, 0, 0)
@@ -981,9 +981,9 @@ class CharFeat(object):
             self.embedding_layer = create_embedding_layer(self.vocab_size,
                 self.embed_dim, False, 0, 0, None, self.random_seed, self.trainable)
             
-            self.conv_layer = create_convolution_layer("stacked_multi_1d", 1, self.embed_dim,
-                self.unit_dim, self.window_size, 1, "SAME", self.activation, [self.dropout], None,
-                False, False, self.num_gpus, self.default_gpu_id, self.regularizer, self.random_seed, self.trainable)
+            self.conv_layer = create_convolution_layer("stacked_multi_1d", 1, self.embed_dim, self.unit_dim,
+                self.window_size, 1, "SAME", self.activation, [self.dropout], None, False, False, True,
+                self.num_gpus, self.default_gpu_id, self.regularizer, self.random_seed, self.trainable)
             
             self.pooling_layer = create_pooling_layer(self.pooling_type, -1, 1, 0, 0)
     
