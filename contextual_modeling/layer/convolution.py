@@ -126,8 +126,8 @@ class Conv3D(object):
         """initialize 3d convolution layer"""
         self.num_channel = num_channel
         self.num_filter = num_filter
-        self.window_size = window_size
-        self.stride_size = stride_size
+        self.window_size = tuple([window_size] * 3)
+        self.stride_size = tuple([stride_size] * 3)
         self.padding_type = padding_type
         self.activation = activation
         self.dropout = dropout
