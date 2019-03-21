@@ -36,8 +36,8 @@ class MaxPooling3D(object):
                  default_gpu_id=0,
                  scope="max_pool_3d"):
         """initialize 3d max pooling layer"""
-        self.window_size = window_size
-        self.stride_size = stride_size
+        self.window_size = tuple([window_size] * 3)
+        self.stride_size = tuple([stride_size] * 3)
         self.scope = scope
         self.device_spec = get_device_spec(default_gpu_id, num_gpus)
         
@@ -103,8 +103,8 @@ class AveragePooling3D(object):
                  default_gpu_id=0,
                  scope="avg_pool_3d"):
         """initialize 3d average pooling layer"""
-        self.window_size = window_size
-        self.stride_size = stride_size
+        self.window_size = tuple([window_size] * 3)
+        self.stride_size = tuple([stride_size] * 3)
         self.scope = scope
         self.device_spec = get_device_spec(default_gpu_id, num_gpus)
         
