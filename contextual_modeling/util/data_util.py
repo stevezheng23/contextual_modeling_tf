@@ -190,29 +190,31 @@ def create_src_dataset(input_data_set,
                        char_vocab_index,
                        char_max_size,
                        char_pad,
-                       char_feat_enable):
+                       char_feat_enable,
+                       num_parallel):
     """create word/char-level dataset for input source data"""
     dataset = input_data_set
     
     word_dataset = None
     if word_feat_enable == True:
         word_dataset = dataset.map(lambda para: generate_word_feat(para, sentence_max_backward, sentence_max_size,
-            word_vocab_index, word_max_size, word_pad))
+            word_vocab_index, word_max_size, word_pad), num_parallel_calls=num_parallel)
     
     char_dataset = None
     if char_feat_enable == True:
         char_dataset = dataset.map(lambda para: generate_char_feat(para, sentence_max_backward, sentence_max_size,
-            word_max_size, char_vocab_index, char_max_size, char_pad))
+            word_max_size, char_vocab_index, char_max_size, char_pad), num_parallel_calls=num_parallel)
     
     return word_dataset, char_dataset
 
 def create_trg_dataset(input_data_set,
                        string_max_backward,
-                       string_max_size):
+                       string_max_size,
+                       num_parallel):
     """create label dataset for input target data"""
     dataset = input_data_set
     
-    num_dataset = dataset.map(lambda para: generate_num_feat(para, string_max_backward, string_max_size))
+    num_dataset = dataset.map(lambda para: generate_num_feat(para, string_max_backward, string_max_size), num_parallel_calls=num_parallel)
     
     return num_dataset
 

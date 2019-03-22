@@ -24,6 +24,7 @@ class BaseModel(object):
                  logger,
                  hyperparams,
                  data_pipeline,
+                 external_data,
                  mode="train",
                  scope="base"):
         """initialize contextual modeling base model"""
@@ -39,6 +40,8 @@ class BaseModel(object):
         self.global_step = None
         self.train_summary = None
         self.infer_summary = None
+        
+        self.word_embedding = external_data["word_embedding"] if external_data is not None and "word_embedding" in external_data else None
         self.word_embedding_placeholder = None
         
         self.batch_size = tf.size(tf.reduce_max(self.data_pipeline.input_label_mask, axis=-2))
@@ -167,9 +170,10 @@ class BaseModel(object):
               sess,
               word_embedding):
         """train model"""
-        word_embed_pretrained = self.hyperparams.model_representation_word_embed_pretrained
+        feed_word_embed = (self.hyperparams.model_representation_word_embed_pretrained and
+            word_embedding is not None and self.word_embedding_placeholder is not None)
         
-        if word_embed_pretrained == True:
+        if feed_word_embed == True:
             (_, loss, learning_rate, global_step, batch_size, summary) = sess.run([self.update_op,
                 self.train_loss, self.learning_rate, self.global_step, self.batch_size, self.train_summary],
                 feed_dict={self.word_embedding_placeholder: word_embedding})
@@ -184,9 +188,10 @@ class BaseModel(object):
               sess,
               word_embedding):
         """infer model"""
-        word_embed_pretrained = self.hyperparams.model_representation_word_embed_pretrained
+        feed_word_embed = (self.hyperparams.model_representation_word_embed_pretrained and
+            word_embedding is not None and self.word_embedding_placeholder is not None)
         
-        if word_embed_pretrained == True:
+        if feed_word_embed == True:
             (infer_predict, batch_size,
                 summary) = sess.run([self.infer_predict, self.batch_size, self.infer_summary],
                     feed_dict={self.word_embedding_placeholder: word_embedding})

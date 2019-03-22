@@ -20,34 +20,51 @@ def add_arguments(parser):
     parser.add_argument("--mode", help="mode to run", required=True)
     parser.add_argument("--config", help="path to json config", required=True)
 
+def pipeline_initialize(sess,
+                        model,
+                        pipeline_mode,
+                        batch_size):
+    data_size = len(model.input_data)
+    data_dict = {
+        "data_size": data_size,
+        "input_data": model.input_data,
+        "input_context": model.input_context,
+        "input_response": model.input_response,
+        "input_label": model.input_label
+    }
+    
+    if pipeline_mode == "dynamic":
+        sess.run(model.data_pipeline.initializer,
+            feed_dict={model.data_pipeline.input_context_placeholder: model.input_context,
+                model.data_pipeline.input_response_placeholder: model.input_response,
+                model.data_pipeline.input_label_placeholder: model.input_label,
+                model.data_pipeline.data_size_placeholder: data_size,
+                model.data_pipeline.batch_size_placeholder: batch_size})
+    else:
+        sess.run(model.data_pipeline.initializer)
+    
+    return data_dict
+
 def extrinsic_eval(logger,
                    summary_writer,
                    sess,
                    model,
-                   input_data,
-                   context_data,
-                   response_data,
-                   label_data,
-                   word_embedding,
+                   pipeline_mode,
                    batch_size,
                    metric_list,
                    global_step,
                    epoch,
                    ckpt_file,
                    eval_mode):
-    data_size = len(input_data)
     load_model(sess, model, ckpt_file, eval_mode)
-    sess.run(model.data_pipeline.initializer,
-        feed_dict={model.data_pipeline.input_context_placeholder: context_data,
-            model.data_pipeline.input_response_placeholder: response_data,
-            model.data_pipeline.input_label_placeholder: label_data,
-            model.data_pipeline.data_size_placeholder: data_size,
-            model.data_pipeline.batch_size_placeholder: batch_size})
+    data_dict = pipeline_initialize(sess, model, pipeline_mode, batch_size)
     
+    data_size = data_dict["data_size"]
+    input_data = data_dict["input_data"]
     sample_predict = []
     while True:
         try:
-            infer_result = model.model.infer(sess, word_embedding)
+            infer_result = model.model.infer(sess, model.word_embedding)
             sample_predict.extend(infer_result.predict)
         except  tf.errors.OutOfRangeError:
             break
@@ -133,9 +150,10 @@ def train(logger,
     
     logger.log_print("##### start training #####")
     global_step = 0
-    train_model.model.save(train_sess, global_step, "debug")
     for epoch in range(hyperparams.train_num_epoch):
-        train_sess.run(train_model.data_pipeline.initializer)
+        data_dict = pipeline_initialize(train_sess, train_model,
+            hyperparams.data_pipeline_mode, hyperparams.train_batch_size)
+        
         step_in_epoch = 0
         while True:
             try:
@@ -154,22 +172,18 @@ def train(logger,
                     train_model.model.save(train_sess, global_step, "debug")
                 if step_in_epoch % hyperparams.train_step_per_eval == 0 and enable_eval == True:
                     ckpt_file = infer_model.model.get_latest_ckpt("debug")
-                    extrinsic_eval(eval_logger, infer_summary_writer, infer_sess,
-                        infer_model, infer_model.input_data, infer_model.input_context,
-                        infer_model.input_response, infer_model.input_label, infer_model.word_embedding,
-                        hyperparams.train_eval_batch_size, hyperparams.train_eval_metric,
-                        global_step, epoch, ckpt_file, "debug")
+                    extrinsic_eval(eval_logger, infer_summary_writer, infer_sess, infer_model,
+                        hyperparams.data_pipeline_mode, hyperparams.train_eval_batch_size, 
+                        hyperparams.train_eval_metric, global_step, epoch, ckpt_file, "debug")
             except tf.errors.OutOfRangeError:
                 train_logger.check()
                 train_summary_writer.add_summary(train_result.summary, global_step)
                 train_model.model.save(train_sess, global_step, "epoch")
                 if enable_eval == True:
                     ckpt_file = infer_model.model.get_latest_ckpt("epoch")
-                    extrinsic_eval(eval_logger, infer_summary_writer, infer_sess,
-                        infer_model, infer_model.input_data, infer_model.input_context,
-                        infer_model.input_response, infer_model.input_label, infer_model.word_embedding,
-                        hyperparams.train_eval_batch_size, hyperparams.train_eval_metric,
-                        global_step, epoch, ckpt_file, "epoch")
+                    extrinsic_eval(eval_logger, infer_summary_writer, infer_sess, infer_model,
+                        hyperparams.data_pipeline_mode, hyperparams.train_eval_batch_size, 
+                        hyperparams.train_eval_metric, global_step, epoch, ckpt_file, "epoch")
                 break
 
     train_summary_writer.close_writer()
@@ -204,11 +218,9 @@ def evaluate(logger,
     eval_mode = "debug" if enable_debug == True else "epoch"
     ckpt_file_list = infer_model.model.get_ckpt_list(eval_mode)
     for i, ckpt_file in enumerate(ckpt_file_list):
-        extrinsic_eval(eval_logger, infer_summary_writer, infer_sess,
-            infer_model, infer_model.input_data, infer_model.input_context,
-            infer_model.input_response, infer_model.input_label, infer_model.word_embedding,
-            hyperparams.train_eval_batch_size, hyperparams.train_eval_metric,
-            global_step, i, ckpt_file, eval_mode)
+        extrinsic_eval(eval_logger, infer_summary_writer, infer_sess, infer_model,
+            hyperparams.data_pipeline_mode, hyperparams.train_eval_batch_size, 
+            hyperparams.train_eval_metric, global_step, i, ckpt_file, eval_mode)
     
     infer_summary_writer.close_writer()
     logger.log_print("##### finish evaluation #####")
