@@ -128,23 +128,26 @@ def create_infer_model(logger,
             logger.log_print("# create infer context dataset")
             context_placeholder = tf.placeholder(shape=[None], dtype=tf.string)
             context_dataset = tf.data.Dataset.from_tensor_slices(context_placeholder)
-            input_context_word_dataset, input_context_char_dataset = create_src_dataset(context_dataset, True,
-                hyperparams.data_context_utterance_size, word_vocab_index, hyperparams.data_context_word_size,
-                hyperparams.data_word_pad, hyperparams.model_representation_word_feat_enable, char_vocab_index,
-                hyperparams.data_context_char_size, hyperparams.data_char_pad, hyperparams.model_representation_char_feat_enable)
+            input_context_word_dataset, input_context_char_dataset = create_src_dataset(context_dataset,
+                True, hyperparams.data_context_utterance_size, word_vocab_index, hyperparams.data_context_word_size,
+                hyperparams.data_word_pad, hyperparams.model_representation_word_feat_enable,
+                char_vocab_index, hyperparams.data_context_char_size, hyperparams.data_char_pad,
+                hyperparams.model_representation_char_feat_enable, hyperparams.data_num_parallel)
 
             logger.log_print("# create infer response dataset")
             response_placeholder = tf.placeholder(shape=[None], dtype=tf.string)
             response_dataset = tf.data.Dataset.from_tensor_slices(response_placeholder)
-            input_response_word_dataset, input_response_char_dataset = create_src_dataset(response_dataset, False,
-                hyperparams.data_response_candidate_size, word_vocab_index, hyperparams.data_response_word_size,
-                hyperparams.data_word_pad, hyperparams.model_representation_word_feat_enable, char_vocab_index,
-                hyperparams.data_response_char_size, hyperparams.data_char_pad, hyperparams.model_representation_char_feat_enable)
+            input_response_word_dataset, input_response_char_dataset = create_src_dataset(response_dataset,
+                False, hyperparams.data_response_candidate_size, word_vocab_index, hyperparams.data_response_word_size,
+                hyperparams.data_word_pad, hyperparams.model_representation_word_feat_enable,
+                char_vocab_index, hyperparams.data_response_char_size, hyperparams.data_char_pad,
+                hyperparams.model_representation_char_feat_enable, hyperparams.data_num_parallel)
 
             logger.log_print("# create infer label dataset")
             label_placeholder = tf.placeholder(shape=[None], dtype=tf.string)
             label_dataset = tf.data.Dataset.from_tensor_slices(label_placeholder)
-            input_label_dataset = create_trg_dataset(label_dataset, False, hyperparams.data_response_candidate_size)
+            input_label_dataset = create_trg_dataset(label_dataset,
+                False, hyperparams.data_response_candidate_size, hyperparams.data_num_parallel)
 
             logger.log_print("# create infer data pipeline")
             data_size_placeholder = tf.placeholder(shape=[], dtype=tf.int64)
@@ -158,25 +161,28 @@ def create_infer_model(logger,
             if word_embed_data is not None:
                 external_data["word_embedding"] = word_embed_data
             
-            logger.log_print("# create train context dataset")
+            logger.log_print("# create infer context dataset")
             context_dataset = tf.data.Dataset.from_tensor_slices(input_context_data)
-            input_context_word_dataset, input_context_char_dataset = create_src_dataset(context_dataset, True,
-                hyperparams.data_context_utterance_size, word_vocab_index, hyperparams.data_context_word_size,
-                hyperparams.data_word_pad, hyperparams.model_representation_word_feat_enable, char_vocab_index,
-                hyperparams.data_context_char_size, hyperparams.data_char_pad, hyperparams.model_representation_char_feat_enable)
+            input_context_word_dataset, input_context_char_dataset = create_src_dataset(context_dataset,
+                True, hyperparams.data_context_utterance_size, word_vocab_index, hyperparams.data_context_word_size,
+                hyperparams.data_word_pad, hyperparams.model_representation_word_feat_enable,
+                char_vocab_index, hyperparams.data_context_char_size, hyperparams.data_char_pad,
+                hyperparams.model_representation_char_feat_enable, hyperparams.data_num_parallel)
 
-            logger.log_print("# create train response dataset")
+            logger.log_print("# create infer response dataset")
             response_dataset = tf.data.Dataset.from_tensor_slices(input_response_data)
-            input_response_word_dataset, input_response_char_dataset = create_src_dataset(response_dataset, False,
-                hyperparams.data_response_candidate_size, word_vocab_index, hyperparams.data_response_word_size,
-                hyperparams.data_word_pad, hyperparams.model_representation_word_feat_enable, char_vocab_index,
-                hyperparams.data_response_char_size, hyperparams.data_char_pad, hyperparams.model_representation_char_feat_enable)
+            input_response_word_dataset, input_response_char_dataset = create_src_dataset(response_dataset,
+                False, hyperparams.data_response_candidate_size, word_vocab_index, hyperparams.data_response_word_size,
+                hyperparams.data_word_pad, hyperparams.model_representation_word_feat_enable,
+                char_vocab_index, hyperparams.data_response_char_size, hyperparams.data_char_pad,
+                hyperparams.model_representation_char_feat_enable, hyperparams.data_num_parallel)
 
-            logger.log_print("# create train label dataset")
+            logger.log_print("# create infer label dataset")
             label_dataset = tf.data.Dataset.from_tensor_slices(input_label_data)
-            input_label_dataset = create_trg_dataset(label_dataset, False, hyperparams.data_response_candidate_size)
-
-            logger.log_print("# create train data pipeline")
+            input_label_dataset = create_trg_dataset(label_dataset,
+                False, hyperparams.data_response_candidate_size, hyperparams.data_num_parallel)
+            
+            logger.log_print("# create infer data pipeline")
             data_pipeline = create_data_pipeline(input_context_word_dataset, input_context_char_dataset,
                 input_response_word_dataset, input_response_char_dataset, input_label_dataset, word_vocab_index,
                 hyperparams.data_word_pad, hyperparams.model_representation_word_feat_enable, char_vocab_index,

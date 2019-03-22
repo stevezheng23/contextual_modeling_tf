@@ -176,9 +176,10 @@ class DAM(BaseModel):
             
             if word_feat_enable == True:
                 self.logger.log_print("# build word-level representation layer")
-                word_feat_layer = WordFeat(vocab_size=word_vocab_size, embed_dim=word_embed_dim, dropout=word_dropout,
-                    pretrained=word_embed_pretrained, num_gpus=self.num_gpus, default_gpu_id=default_representation_gpu_id,
-                    regularizer=self.regularizer, random_seed=self.random_seed, trainable=word_feat_trainable)
+                word_feat_layer = WordFeat(vocab_size=word_vocab_size, embed_dim=word_embed_dim,
+                    dropout=word_dropout, pretrained=word_embed_pretrained, embedding=self.word_embedding,
+                    num_gpus=self.num_gpus, default_gpu_id=default_representation_gpu_id, regularizer=self.regularizer, 
+                    random_seed=self.random_seed, trainable=word_feat_trainable)
                 
                 (input_context_word_feat,
                     input_context_word_feat_mask) = word_feat_layer(input_context_word, input_context_word_mask)
@@ -894,6 +895,7 @@ class WordFeat(object):
                  embed_dim,
                  dropout,
                  pretrained,
+                 embedding=None,
                  num_gpus=1,
                  default_gpu_id=0,
                  regularizer=None,
@@ -905,6 +907,7 @@ class WordFeat(object):
         self.embed_dim = embed_dim
         self.dropout = dropout
         self.pretrained = pretrained
+        self.embedding = embedding
         self.num_gpus = num_gpus
         self.default_gpu_id = default_gpu_id
         self.regularizer = regularizer
@@ -913,7 +916,7 @@ class WordFeat(object):
         self.scope = scope
         
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
-            self.embedding_layer = create_embedding_layer(self.vocab_size, self.embed_dim, self.pretrained,
+            self.embedding_layer = create_embedding_layer(self.vocab_size, self.embed_dim, self.pretrained, self.embedding,
                 self.num_gpus, self.default_gpu_id, None, self.random_seed, self.trainable)
             
             self.dropout_layer = create_dropout_layer(self.dropout, self.num_gpus, self.default_gpu_id, self.random_seed)
@@ -970,7 +973,7 @@ class CharFeat(object):
         self.scope = scope
         
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
-            self.embedding_layer = create_embedding_layer(self.vocab_size, self.embed_dim, False,
+            self.embedding_layer = create_embedding_layer(self.vocab_size, self.embed_dim, False, None,
                 self.num_gpus, self.default_gpu_id, None, self.random_seed, self.trainable)
             
             self.conv_layer = create_convolution_layer("stacked_multi_1d", 1, self.embed_dim, self.unit_dim,
