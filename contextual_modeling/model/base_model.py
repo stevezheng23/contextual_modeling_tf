@@ -24,12 +24,14 @@ class BaseModel(object):
                  logger,
                  hyperparams,
                  data_pipeline,
+                 external_data,
                  mode="train",
                  scope="base"):
         """initialize contextual modeling base model"""
         self.logger = logger
         self.hyperparams = hyperparams
         self.data_pipeline = data_pipeline
+        self.external_data = external_data
         self.mode = mode
         self.scope = scope
         

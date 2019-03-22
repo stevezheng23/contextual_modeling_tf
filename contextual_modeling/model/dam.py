@@ -22,11 +22,12 @@ class DAM(BaseModel):
                  logger,
                  hyperparams,
                  data_pipeline,
+                 external_data,
                  mode="train",
                  scope="dam"):
         """initialize dam model"""
         super(DAM, self).__init__(logger=logger, hyperparams=hyperparams,
-            data_pipeline=data_pipeline, mode=mode, scope=scope)
+            data_pipeline=data_pipeline, external_data=external_data, mode=mode, scope=scope)
         
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
             self.global_step = tf.get_variable("global_step", shape=[], dtype=tf.int32,
