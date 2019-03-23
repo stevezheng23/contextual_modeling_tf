@@ -156,8 +156,7 @@ def create_infer_model(logger,
             data_pipeline = create_dynamic_pipeline(input_context_word_dataset, input_context_char_dataset,
                 input_response_word_dataset, input_response_char_dataset, input_label_dataset, word_vocab_index,
                 hyperparams.data_word_pad, hyperparams.model_representation_word_feat_enable, char_vocab_index,
-                hyperparams.data_char_pad, hyperparams.model_representation_char_feat_enable,
-                hyperparams.train_random_seed, hyperparams.train_enable_shuffle, hyperparams.train_shuffle_buffer_size,
+                hyperparams.data_char_pad, hyperparams.model_representation_char_feat_enable, None, False, 0,
                 context_placeholder, response_placeholder, label_placeholder, data_size_placeholder, batch_size_placeholder)
         else:
             if word_embed_data is not None:
@@ -189,8 +188,7 @@ def create_infer_model(logger,
                 input_response_word_dataset, input_response_char_dataset, input_label_dataset, word_vocab_index,
                 hyperparams.data_word_pad, hyperparams.model_representation_word_feat_enable, char_vocab_index,
                 hyperparams.data_char_pad, hyperparams.model_representation_char_feat_enable,
-                hyperparams.train_random_seed, hyperparams.train_enable_shuffle, hyperparams.train_shuffle_buffer_size,
-                len(input_data), hyperparams.train_eval_batch_size)
+                None, False, 0, len(input_data), hyperparams.train_eval_batch_size)
         
         model_creator = get_model_creator(hyperparams.model_type)
         model = model_creator(logger=logger, hyperparams=hyperparams, data_pipeline=data_pipeline,
