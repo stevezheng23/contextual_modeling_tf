@@ -166,7 +166,6 @@ class DAM(BaseModel):
         fusion_hidden_activation = self.hyperparams.model_representation_fusion_hidden_activation
         fusion_dropout = self.hyperparams.model_representation_fusion_dropout if self.mode == "train" else 0.0
         fusion_trainable = self.hyperparams.model_representation_fusion_trainable
-        default_representation_gpu_id = self.default_gpu_id
         
         with tf.variable_scope("representation", reuse=tf.AUTO_REUSE):
             input_context_feat_list = []
@@ -178,7 +177,7 @@ class DAM(BaseModel):
                 self.logger.log_print("# build word-level representation layer")
                 word_feat_layer = WordFeat(vocab_size=word_vocab_size, embed_dim=word_embed_dim,
                     dropout=word_dropout, pretrained=word_embed_pretrained, embedding=self.word_embedding,
-                    num_gpus=self.num_gpus, default_gpu_id=default_representation_gpu_id, regularizer=self.regularizer, 
+                    num_gpus=self.num_gpus, default_gpu_id=self.default_gpu_id, regularizer=self.regularizer, 
                     random_seed=self.random_seed, trainable=word_feat_trainable)
                 
                 (input_context_word_feat,
@@ -200,7 +199,7 @@ class DAM(BaseModel):
                 self.logger.log_print("# build char-level representation layer")
                 char_feat_layer = CharFeat(vocab_size=char_vocab_size, embed_dim=char_embed_dim, unit_dim=char_unit_dim,
                     window_size=char_window_size, activation=char_hidden_activation, pooling_type=char_pooling_type,
-                    dropout=char_dropout, num_gpus=self.num_gpus, default_gpu_id=default_representation_gpu_id,
+                    dropout=char_dropout, num_gpus=self.num_gpus, default_gpu_id=self.default_gpu_id,
                     regularizer=self.regularizer, random_seed=self.random_seed, trainable=char_feat_trainable)
                 
                 (input_context_char_feat,
@@ -218,7 +217,7 @@ class DAM(BaseModel):
             feat_unit_dim = word_unit_dim + char_unit_dim
             feat_fusion_layer = FusionModule(input_unit_dim=feat_unit_dim, output_unit_dim=fusion_unit_dim,
                 fusion_type=fusion_type, num_layer=fusion_num_layer, activation=fusion_hidden_activation,
-                dropout=fusion_dropout, num_gpus=self.num_gpus, default_gpu_id=default_representation_gpu_id,
+                dropout=fusion_dropout, num_gpus=self.num_gpus, default_gpu_id=self.default_gpu_id,
                 regularizer=self.regularizer, random_seed=self.random_seed, trainable=fusion_trainable)
             
             (input_context_feat,
@@ -257,7 +256,6 @@ class DAM(BaseModel):
         response_understanding_layer_dropout = self.hyperparams.model_understanding_response_layer_dropout if self.mode == "train" else 0.0
         response_understanding_trainable = self.hyperparams.model_understanding_response_trainable
         enable_understanding_sharing = self.hyperparams.model_understanding_enable_sharing
-        default_understanding_gpu_id = self.default_gpu_id
         
         with tf.variable_scope("understanding", reuse=tf.AUTO_REUSE):
             with tf.variable_scope("context", reuse=tf.AUTO_REUSE):
@@ -265,13 +263,13 @@ class DAM(BaseModel):
                 context_understanding_fusion_layer = FusionModule(input_unit_dim=context_representation_unit_dim,
                     output_unit_dim=context_understanding_unit_dim, fusion_type="conv", num_layer=1,
                     activation=context_understanding_hidden_activation, dropout=context_understanding_dropout,
-                    num_gpus=self.num_gpus, default_gpu_id=default_understanding_gpu_id, regularizer=self.regularizer,
+                    num_gpus=self.num_gpus, default_gpu_id=self.default_gpu_id, regularizer=self.regularizer,
                     random_seed=self.random_seed, trainable=context_understanding_trainable)
                 context_understanding_layer = StackedAttentiveModule(num_layer=context_understanding_num_layer,
                     num_head=context_understanding_num_head, unit_dim=context_understanding_unit_dim,
                     activation=context_understanding_hidden_activation, dropout=context_understanding_dropout,
                     att_dropout=context_understanding_att_dropout, layer_dropout=context_understanding_layer_dropout,
-                    num_gpus=self.num_gpus, default_gpu_id=default_understanding_gpu_id, regularizer=self.regularizer,
+                    num_gpus=self.num_gpus, default_gpu_id=self.default_gpu_id, regularizer=self.regularizer,
                     random_seed=self.random_seed, trainable=context_understanding_trainable)
                 
                 (context_understanding_fusion,
@@ -295,13 +293,13 @@ class DAM(BaseModel):
                     response_understanding_fusion_layer = FusionModule(input_unit_dim=response_representation_unit_dim,
                         output_unit_dim=response_understanding_unit_dim, fusion_type="conv", num_layer=1,
                         activation=response_understanding_hidden_activation, dropout=response_understanding_dropout,
-                        num_gpus=self.num_gpus, default_gpu_id=default_understanding_gpu_id, regularizer=self.regularizer,
+                        num_gpus=self.num_gpus, default_gpu_id=self.default_gpu_id, regularizer=self.regularizer,
                         random_seed=self.random_seed, trainable=response_understanding_trainable)
                     response_understanding_layer = StackedAttentiveModule(num_layer=response_understanding_num_layer,
                         num_head=response_understanding_num_head, unit_dim=response_understanding_unit_dim,
                         activation=response_understanding_hidden_activation, dropout=response_understanding_dropout,
                         att_dropout=response_understanding_att_dropout, layer_dropout=response_understanding_layer_dropout,
-                        num_gpus=self.num_gpus, default_gpu_id=default_understanding_gpu_id,regularizer=self.regularizer,
+                        num_gpus=self.num_gpus, default_gpu_id=self.default_gpu_id,regularizer=self.regularizer,
                         random_seed=self.random_seed, trainable=response_understanding_trainable)
                 
                 (response_understanding_fusion,
@@ -341,7 +339,6 @@ class DAM(BaseModel):
         response2context_interaction_att_dropout = self.hyperparams.model_interaction_response2context_attention_dropout if self.mode == "train" else 0.0
         response2context_interaction_layer_dropout = self.hyperparams.model_interaction_response2context_layer_dropout if self.mode == "train" else 0.0
         response2context_interaction_trainable = self.hyperparams.model_interaction_response2context_trainable
-        default_interaction_gpu_id = self.default_gpu_id
         
         with tf.variable_scope("interaction", reuse=tf.AUTO_REUSE):
             with tf.variable_scope("context2response", reuse=tf.AUTO_REUSE):
@@ -350,7 +347,7 @@ class DAM(BaseModel):
                     num_head=context2response_interaction_num_head, unit_dim=context2response_interaction_unit_dim,
                     activation=context2response_interaction_hidden_activation, dropout=context2response_interaction_dropout,
                     att_dropout=context2response_interaction_att_dropout, layer_dropout=context2response_interaction_layer_dropout,
-                    num_gpus=self.num_gpus, default_gpu_id=default_interaction_gpu_id, regularizer=self.regularizer,
+                    num_gpus=self.num_gpus, default_gpu_id=self.default_gpu_id, regularizer=self.regularizer,
                     random_seed=self.random_seed, trainable=context2response_interaction_trainable)
                 
                 (context2response_interaction,
@@ -363,7 +360,7 @@ class DAM(BaseModel):
                     num_head=response2context_interaction_num_head, unit_dim=response2context_interaction_unit_dim,
                     activation=response2context_interaction_hidden_activation, dropout=response2context_interaction_dropout,
                     att_dropout=response2context_interaction_att_dropout, layer_dropout=response2context_interaction_layer_dropout,
-                    num_gpus=self.num_gpus, default_gpu_id=default_interaction_gpu_id, regularizer=self.regularizer,
+                    num_gpus=self.num_gpus, default_gpu_id=self.default_gpu_id, regularizer=self.regularizer,
                     random_seed=self.random_seed, trainable=response2context_interaction_trainable)
                 
                 (response2context_interaction,
@@ -395,7 +392,6 @@ class DAM(BaseModel):
         aggregation_trainable = self.hyperparams.model_matching_aggregation_trainable
         projection_dropout = self.hyperparams.model_matching_projection_dropout
         projection_trainable = self.hyperparams.model_matching_projection_trainable
-        default_matching_gpu_id = self.default_gpu_id
         
         with tf.variable_scope("matching", reuse=tf.AUTO_REUSE):
             self.logger.log_print("# build context-response matching layer")
@@ -441,7 +437,7 @@ class DAM(BaseModel):
             aggregation_layer = StackedAggregationModule(num_layer=aggregation_num_layer, unit_dim=aggregation_unit_dim,
                 activation=aggregation_hidden_activation, conv_window=aggregation_conv_window, conv_stride=aggregation_conv_stride,
                 pool_window=aggregation_pool_window, pool_stride=aggregation_pool_stride, pooling_type=aggregation_pooling_type,
-                dropout=aggregation_dropout, num_gpus=self.num_gpus, default_gpu_id=default_matching_gpu_id,
+                dropout=aggregation_dropout, num_gpus=self.num_gpus, default_gpu_id=self.default_gpu_id,
                 regularizer=self.regularizer, random_seed=self.random_seed, trainable=aggregation_trainable)
             
             aggregated_matching, aggregated_matching_mask = aggregation_layer(full_matching, full_matching_mask)
@@ -732,10 +728,9 @@ class MultiAttentiveModule(object):
             self.module_layer_list = []
             for i in range(self.num_layer):
                 layer_scope = "layer_{0}".format(i)
-                layer_default_gpu_id = self.default_gpu_id + i
                 module_layer = AttentiveModule(num_head=self.num_head, unit_dim=self.unit_dim, activation=self.activation,
                     dropout=self.dropout, att_dropout=self.att_dropout, layer_dropout=(0, 2, self.layer_dropout),
-                    is_self=False, num_gpus=self.num_gpus, default_gpu_id=layer_default_gpu_id, regularizer=self.regularizer,
+                    is_self=False, num_gpus=self.num_gpus, default_gpu_id=self.default_gpu_id, regularizer=self.regularizer,
                     random_seed=self.random_seed, trainable=self.trainable, scope=layer_scope)
                 self.module_layer_list.append(module_layer)
     
@@ -865,11 +860,10 @@ class StackedAggregationModule(object):
             self.module_layer_list = []
             for i in range(self.num_layer):
                 layer_scope = "layer_{0}".format(i)
-                layer_default_gpu_id = self.default_gpu_id + i
                 module_layer = AggregationModule(num_channel=self.num_channel[i], num_filter=self.num_filter[i],
                     activation=self.activation, conv_window=self.conv_window[i], conv_stride=self.conv_stride[i],
                     pool_window=self.pool_window[i], pool_stride=self.pool_stride[i], pooling_type=self.pooling_type[i],
-                    dropout=self.dropout[i], num_gpus=self.num_gpus, default_gpu_id=layer_default_gpu_id,
+                    dropout=self.dropout[i], num_gpus=self.num_gpus, default_gpu_id=self.default_gpu_id,
                     regularizer=self.regularizer, random_seed=self.random_seed, trainable=self.trainable[i], scope=layer_scope)
                 self.module_layer_list.append(module_layer)
     
