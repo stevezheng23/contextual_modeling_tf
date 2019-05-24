@@ -34,6 +34,9 @@ def create_train_model(logger,
             hyperparams.data_char_unk, hyperparams.data_char_pad, hyperparams.model_representation_char_feat_enable)
         
         external_data = {}
+        if word_embed_data is not None:
+            external_data["word_embedding"] = word_embed_data
+        
         if hyperparams.data_pipeline_mode == "dynamic":
             logger.log_print("# create train context dataset")
             context_placeholder = tf.placeholder(shape=[None], dtype=tf.string)
@@ -69,9 +72,6 @@ def create_train_model(logger,
                 hyperparams.train_random_seed, hyperparams.train_enable_shuffle, hyperparams.train_shuffle_buffer_size,
                 context_placeholder, response_placeholder, label_placeholder, data_size_placeholder, batch_size_placeholder)
         else:
-            if word_embed_data is not None:
-                external_data["word_embedding"] = word_embed_data
-            
             logger.log_print("# create train context dataset")
             context_dataset = tf.data.Dataset.from_tensor_slices(input_context_data)
             input_context_word_dataset, input_context_char_dataset = create_src_dataset(context_dataset,
@@ -125,6 +125,9 @@ def create_infer_model(logger,
              hyperparams.data_char_unk, hyperparams.data_char_pad, hyperparams.model_representation_char_feat_enable)
         
         external_data = {}
+        if word_embed_data is not None:
+            external_data["word_embedding"] = word_embed_data
+        
         if hyperparams.data_pipeline_mode == "dynamic":
             logger.log_print("# create infer context dataset")
             context_placeholder = tf.placeholder(shape=[None], dtype=tf.string)
@@ -159,9 +162,6 @@ def create_infer_model(logger,
                 hyperparams.data_char_pad, hyperparams.model_representation_char_feat_enable, None, False, 0,
                 context_placeholder, response_placeholder, label_placeholder, data_size_placeholder, batch_size_placeholder)
         else:
-            if word_embed_data is not None:
-                external_data["word_embedding"] = word_embed_data
-            
             logger.log_print("# create infer context dataset")
             context_dataset = tf.data.Dataset.from_tensor_slices(input_context_data)
             input_context_word_dataset, input_context_char_dataset = create_src_dataset(context_dataset,
