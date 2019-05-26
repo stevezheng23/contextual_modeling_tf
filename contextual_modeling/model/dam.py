@@ -454,7 +454,7 @@ class DAM(BaseModel):
             aggregated_matching_mask = tf.expand_dims(tf.reduce_max(aggregated_matching_mask, axis=[2, 3, 4, 5]), axis=-1)
             
             projection_layer = create_dense_layer("single", 1, 1, 1, "", [projection_dropout], None, False, False, True,
-                self.num_gpus, default_matching_gpu_id, self.regularizer, self.random_seed, projection_trainable)
+                self.num_gpus, self.default_gpu_id, self.regularizer, self.random_seed, projection_trainable)
             
             projection_matching, projection_matching_mask = projection_layer(aggregated_matching, aggregated_matching_mask)
             
